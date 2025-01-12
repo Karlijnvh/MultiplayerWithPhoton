@@ -29,10 +29,10 @@ namespace PV.Multiplayer
         public bool isGrounded;
 
         [Tooltip("Radius of sphere which is used in ground detection. Make it slightly lower than capsule collider's radius.")]
-        public float groundCheckRadius = 0.28f;
+        public float groundCheckRadius = 0.48f;
 
         [Tooltip("Offset of ground check, useful when ground is rough.")]
-        public float groundOffset = -0.2f;
+        public float groundOffset = 0.65f;
 
         [Tooltip("Layer to check ground.")]
         public LayerMask groundLayer;
@@ -84,11 +84,6 @@ namespace PV.Multiplayer
 
         private void HandleMovement()
         {
-            if (!isGrounded)
-            {
-                return;
-            }
-
             // Deciding the move speed of player.
             _moveSpeed = moveSpeed;
 
@@ -121,11 +116,6 @@ namespace PV.Multiplayer
 
         private void HandleRotation()
         {
-            if (!isGrounded)
-            {
-                return;
-            }
-
             // Calculating move direction based on camera forward and player input
             _targetDirection = _cameraTransform.forward * _input.move.z;
             _targetDirection += _cameraTransform.right * _input.move.x;
