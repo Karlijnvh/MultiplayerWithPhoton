@@ -1,3 +1,4 @@
+using Cinemachine;
 using UnityEngine;
 
 namespace PV.Multiplayer
@@ -39,6 +40,7 @@ namespace PV.Multiplayer
 
         private Rigidbody _rigid;
         private PlayerInputs _input;
+        private PlayerManager _manager;
         private Transform _cameraTransform;
 
         private float _moveSpeed;
@@ -57,7 +59,8 @@ namespace PV.Multiplayer
         {
             _rigid = GetComponent<Rigidbody>();
             _input = GetComponent<PlayerInputs>();
-            _cameraTransform = Camera.main.transform;
+            _manager = GetComponent<PlayerManager>();
+            _cameraTransform = _manager.cameraTransform;
         }
 
         private void FixedUpdate()
