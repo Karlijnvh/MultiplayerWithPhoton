@@ -1,57 +1,79 @@
 using UnityEngine;
 using Photon.Pun;
+using Photon.Realtime;
 
 namespace PV.Multiplayer
 {
     public class NetworkManager : MonoBehaviourPunCallbacks
     {
-        public GameObject playerPrefab;
-        public Transform[] spawnPoints;
+        public static NetworkManager Instance;
 
-        private Vector3 _spawnPosition;
+        public static System.Action<string> OnDoProcess;
+        public static System.Action OnProcessFailed;
 
-        private void Start()
+        private string _roomName;
+
+        private void Awake()
         {
+            Instance = this;
+        }
+
+        public void Connect(string roomName)
+        {
+            _roomName = roomName;
             if (!PhotonNetwork.IsConnected)
             {
+                OnDoProcess?.Invoke("Connecting...");
                 PhotonNetwork.ConnectUsingSettings();
+            }
+            else
+            {
+                OnDoProcess?.Invoke($"Joining Room : {_roomName}");
+                PhotonNetwork.JoinOrCreateRoom(_roomName, null, null);
             }
         }
 
         public override void OnConnectedToMaster()
         {
-            base.OnConnectedToMaster();
-
             Debug.Log("Connected to Master.");
+
+            OnDoProcess?.Invoke("Connecting to lobby...");
             PhotonNetwork.JoinLobby();
+        }
+
+        public override void OnDisconnected(DisconnectCause cause)
+        {
+            Debug.Log($"Disconnected from server.\nCause : {cause}");
+            OnProcessFailed?.Invoke();
         }
 
         public override void OnJoinedLobby()
         {
-            base.OnJoinedLobby();
-
             Debug.Log("Joined to Lobby.");
-            PhotonNetwork.JoinOrCreateRoom("ding", null, null);
+
+            // Checking if room name is not null and empty.
+            if (_roomName != null && _roomName.Trim().Length > 0)
+            {
+                OnDoProcess?.Invoke($"Joining Room : {_roomName}");
+                PhotonNetwork.JoinOrCreateRoom(_roomName, null, null);
+            }
+            else
+            {
+                Debug.Log("Room name is empty.");
+            }
         }
 
         public override void OnJoinedRoom()
         {
-            base.OnJoinedRoom();
-
             Debug.Log("Joined a room");
-            SpawnPlayer();
+
+            PhotonNetwork.LoadLevel(1);
         }
 
-        /// <summary>
-        /// Spawns the player at random spawn position.
-        /// </summary>
-        private void SpawnPlayer()
+        public override void OnJoinRoomFailed(short returnCode, string message)
         {
-            // Getting a random point from spawn points.
-            _spawnPosition = spawnPoints[Random.Range(0, spawnPoints.Length)].position;
-
-            // Instantiating player in network.
-            PhotonNetwork.Instantiate(playerPrefab.name, _spawnPosition, Quaternion.identity);
+            Debug.LogError($"Join Room Failed with return code {returnCode} and \nMessage: {message}");
+            OnProcessFailed?.Invoke();
         }
     }
 }

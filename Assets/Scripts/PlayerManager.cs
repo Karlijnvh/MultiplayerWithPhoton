@@ -1,29 +1,31 @@
 using Cinemachine;
-using System.Collections;
-using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
-using UnityEngine.Windows;
 
 namespace PV.Multiplayer
 {
     public class PlayerManager : MonoBehaviour
     {
-        [Header("Camera")]
-        public CinemachineVirtualCameraBase cinemachineCamera;
-        public Transform cameraTransform;
+        private PlayerMovement _playerMovement;
+        private PhotonView _photonView;
 
         private void Awake()
         {
-            RemoveParentOfAll();
+            _playerMovement = GetComponent<PlayerMovement>();
+            _photonView = GetComponent<PhotonView>();
         }
 
-        private void RemoveParentOfAll()
+        private void FixedUpdate()
         {
-            cameraTransform.SetParent(null);
-            cinemachineCamera.transform.SetParent(null);
-            GameObject parent = transform.parent.gameObject;
-            transform.SetParent(null);
-            Destroy(parent);
+            if (_photonView == null || !_photonView.IsMine)
+            {
+                return;
+            }
+
+            if (_playerMovement != null)
+            {
+                _playerMovement.UpdateMovement();
+            }
         }
     }
 }

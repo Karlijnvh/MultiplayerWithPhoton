@@ -60,16 +60,11 @@ namespace PV.Multiplayer
             _rigid = GetComponent<Rigidbody>();
             _input = GetComponent<PlayerInputs>();
             _manager = GetComponent<PlayerManager>();
-            _cameraTransform = _manager.cameraTransform;
+            _cameraTransform = Camera.main.transform;
         }
 
-        private void FixedUpdate()
+        public void UpdateMovement()
         {
-            if (_input == null)
-            {
-                return;
-            }
-
             CheckGrounded();
             HandleMovement();
             HandleRotation();
