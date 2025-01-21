@@ -18,9 +18,20 @@ namespace PV.Multiplayer
             Instance = this;
         }
 
-        public void Connect(string roomName)
+        public void Connect(string roomName, string playerName)
         {
             _roomName = roomName;
+            if (playerName.Trim().Length > 0)
+            {
+                PhotonNetwork.NickName = playerName;
+                PlayerPrefs.SetString("PlayerName", playerName);
+            }
+            else
+            {
+                PhotonNetwork.NickName = $"Player{Random.Range(100, 9999)}";
+                PlayerPrefs.SetString("PlayerName", PhotonNetwork.NickName);
+            }
+
             if (!PhotonNetwork.IsConnected)
             {
                 OnDoProcess?.Invoke("Connecting...");

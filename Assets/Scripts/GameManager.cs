@@ -43,7 +43,6 @@ namespace PV.Multiplayer
         /// </summary>
         private void SpawnPlayer()
         {
-            Debug.Log("11111");
             // Getting a random point from spawn points.
             _spawnPosition = spawnPoints[Random.Range(0, spawnPoints.Length)].position;
 

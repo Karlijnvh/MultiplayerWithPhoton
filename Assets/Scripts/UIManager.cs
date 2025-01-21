@@ -17,12 +17,20 @@ namespace PV.Multiplayer
             NetworkManager.OnDoProcess += NetworkManager_OnDoProcess;
         }
 
+        private void Start()
+        {
+            if (PlayerPrefs.HasKey("PlayerName"))
+            {
+                playerNameField.text = PlayerPrefs.GetString("PlayerName");
+            }
+        }
+
         public void JoinRoom()
         {
             feedbackMessage.text = "Connecting...";
             feedbackMessage.gameObject.SetActive(true);
             lobby.SetActive(false);
-            NetworkManager.Instance.Connect(roomNameField.text);
+            NetworkManager.Instance.Connect(roomNameField.text, playerNameField.text);
         }
 
         private void NetworkManager_OnDoProcess(string message)
