@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace PV.Multiplayer
 {
-    public class PlayerMovement : MonoBehaviour
+    public class Movement : MonoBehaviour
     {
         [Header("Movement")]
         [Tooltip("Speed of player when moving.")]
-        public float moveSpeed = 3;
+        public float moveSpeed = 10;
 
         [Tooltip("How fast the player turns to face move direction.")]
         public float rotationSmoothRate = 15;
@@ -37,9 +37,9 @@ namespace PV.Multiplayer
         [Tooltip("Layer to check ground.")]
         public LayerMask groundLayer;
 
+        protected InputManager _input;
+
         private Rigidbody _rigid;
-        private PlayerInputs _input;
-        private PlayerManager _manager;
         private Transform _cameraTransform;
 
         private float _moveSpeed;
@@ -54,11 +54,10 @@ namespace PV.Multiplayer
         private Quaternion _targetRotation;
         private Quaternion _playerRotation;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             _rigid = GetComponent<Rigidbody>();
-            _input = GetComponent<PlayerInputs>();
-            _manager = GetComponent<PlayerManager>();
+            _input = FindObjectOfType<InputManager>();
             _cameraTransform = Camera.main.transform;
         }
 
@@ -114,8 +113,7 @@ namespace PV.Multiplayer
         private void HandleRotation()
         {
             // Calculating move direction based on camera forward and player input
-            _targetDirection = _cameraTransform.forward * _input.move.z;
-            _targetDirection += _cameraTransform.right * _input.move.x;
+            _targetDirection = _cameraTransform.forward;
             _targetDirection.Normalize();
 
             // Checking if target direction is zero, then applying forward direction

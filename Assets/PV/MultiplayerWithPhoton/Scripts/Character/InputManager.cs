@@ -1,12 +1,15 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace PV.Multiplayer
 {
-    public class PlayerInputs : MonoBehaviour
+    public class InputManager : MonoBehaviour
     {
         public Vector3 move;
+        public Vector2 look;
         public bool jump;
+        public bool isAiming;
 
         private InputActions _inputActions;
         private Vector2 _moveInput2D;
@@ -25,8 +28,17 @@ namespace PV.Multiplayer
         {
             _inputActions.Player.Move.performed += OnMove;
             _inputActions.Player.Move.canceled += OnMove;
+            _inputActions.Player.Look.performed += OnLook;
+            _inputActions.Player.Look.canceled += OnLook;
             _inputActions.Player.Jump.performed += c => jump = true;
             _inputActions.Player.Jump.canceled += c => jump = false;
+            _inputActions.Player.Aim.performed += c => isAiming = true;
+            _inputActions.Player.Aim.canceled += c => isAiming = false;
+        }
+
+        private void OnLook(InputAction.CallbackContext context)
+        {
+            look = context.ReadValue<Vector2>();
         }
 
         private void OnMove(InputAction.CallbackContext ctx)

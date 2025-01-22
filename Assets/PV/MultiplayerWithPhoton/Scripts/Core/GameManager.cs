@@ -7,34 +7,37 @@ namespace PV.Multiplayer
 {
     public class GameManager : MonoBehaviourPunCallbacks
     {
+        public bool lockCursor;
         public GameObject playerPrefab;
-        public CinemachineVirtualCameraBase cinemachineCamera;
         public Transform[] spawnPoints;
+
+        [Header("Test")]
+        public bool isTest = false;
 
         private Vector3 _spawnPosition;
 
         // Start is called before the first frame update
         void Start()
         {
-            if (!PhotonNetwork.IsConnected)
+            if (!isTest && !PhotonNetwork.IsConnected)
             {
                 SceneManager.LoadScene(0);
             }
             else
             {
-                if (cinemachineCamera == null)
-                {
-                    cinemachineCamera = FindObjectOfType<CinemachineVirtualCameraBase>();
-                }
-
                 if (playerPrefab == null)
                 {
                     Debug.LogError("Player prefab is missing!");
                 }
-                else
-                {
+                else if (!isTest) 
+                { 
                     SpawnPlayer();
                 }
+            }
+
+            if (lockCursor)
+            {
+                Cursor.lockState = CursorLockMode.Confined;
             }
         }
 
@@ -48,11 +51,8 @@ namespace PV.Multiplayer
 
             // Instantiating player in network.
             GameObject player = PhotonNetwork.Instantiate(playerPrefab.name, _spawnPosition, Quaternion.identity);
-            if (cinemachineCamera != null)
-            {
-                cinemachineCamera.Follow = player.transform;
-                cinemachineCamera.LookAt = player.transform;
-            }
+
+            CameraFollow.Instance.Init(player.GetComponent<PlayerController>());
         }
 
         public override void OnLeftRoom()
