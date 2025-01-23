@@ -44,6 +44,11 @@ namespace PV.Multiplayer
             lobby.SetActive(true);
         }
 
+        public void Quit()
+        {
+            Application.Quit();
+        }
+
         private void OnDisable()
         {
             NetworkManager.OnProcessFailed -= NetworkManager_OnProcessFailed;
