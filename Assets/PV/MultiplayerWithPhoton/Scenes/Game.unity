@@ -1888,7 +1888,7 @@ Transform:
   m_GameObject: {fileID: 1211214309}
   serializedVersion: 2
   m_LocalRotation: {x: -0.19338596, y: 0.5366696, z: -0.1279282, w: -0.81130886}
-  m_LocalPosition: {x: 0.31828284, y: 2.689876, z: -2.3231637}
+  m_LocalPosition: {x: -1.52, y: 1.5922463, z: -4.51}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3537,7 +3537,7 @@ Transform:
   m_GameObject: {fileID: 290337501427617582}
   serializedVersion: 2
   m_LocalRotation: {x: -0.19338596, y: 0.5366696, z: -0.1279282, w: -0.81130886}
-  m_LocalPosition: {x: 0.31828284, y: 2.689876, z: -2.3231637}
+  m_LocalPosition: {x: -1.52, y: 1.5922463, z: -4.51}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3648,13 +3648,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aabfaddf652887140b9a41083b2a72e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _input: {fileID: 1759388753}
+  input: {fileID: 1759388753}
   followCamera: {fileID: 1211214310}
   aimCamera: {fileID: 442931458}
   angleUpDown: 20
-  lookMultiplier: 2
+  lookMultiplier: 20
   rotationSmooth: 5
-  rotation: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -10,7 +10,7 @@ namespace PV.Multiplayer
         [SerializeField] private Slider healthSlider;
         [SerializeField] private TextMeshProUGUI healthText;
         [SerializeField] private GameObject reticle;
-        public RectTransform aimReticle;
+        [SerializeField] private RectTransform aimReticle;
 
         private readonly WaitForSeconds waitSeconds = new(0.15f);
 
@@ -30,6 +30,11 @@ namespace PV.Multiplayer
             yield return waitSeconds;
 
             reticle.SetActive(enable);
+        }
+
+        public RectTransform GetReticle()
+        {
+            return aimReticle;
         }
     }
 }
