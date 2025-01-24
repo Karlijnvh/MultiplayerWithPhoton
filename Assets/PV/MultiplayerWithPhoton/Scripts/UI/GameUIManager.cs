@@ -15,13 +15,31 @@ namespace PV.Multiplayer
         public GameObject logTextPrefab;
 
         private TextMeshProUGUI _logText;
+        internal PhotonView photonView;
 
         private void Awake()
         {
             Instance = this;
+            photonView = GetComponent<PhotonView>();
         }
 
-        public void Log(string message)
+        public void LogKilled(string attackerName, string victimName)
+        {
+            Log($"{attackerName} killed {victimName}.");
+        }
+
+        [PunRPC]
+        public void LogSpawned(string playerName)
+        {
+            Log($"{playerName} spawned.");
+        }
+
+        public void LogLeft(string playerName)
+        {
+            Log($"{playerName} left.");
+        }
+
+        private void Log(string message)
         {
             if (logTextPrefab != null && logContainer != null)
             {

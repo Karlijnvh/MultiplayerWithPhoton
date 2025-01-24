@@ -89,7 +89,7 @@ namespace PV.Multiplayer
                 playerUI.SetHealth(health);
             }
 
-            GameUIManager.Instance.Log($"{lastAttackerName} killed {photonView.Owner.NickName}");
+            GameUIManager.Instance.LogKilled(lastAttackerName, photonView.Owner.NickName);
             GameManager.Instance.ReSpawn(this);
         }
     }

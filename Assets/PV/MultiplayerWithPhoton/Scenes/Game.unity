@@ -1701,6 +1701,7 @@ GameObject:
   - component: {fileID: 783064348}
   - component: {fileID: 783064347}
   - component: {fileID: 783064351}
+  - component: {fileID: 783064352}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1808,6 +1809,28 @@ MonoBehaviour:
   logContainer: {fileID: 476278424}
   logTextPrefab: {fileID: 8840147223798957733, guid: 4dc4b5b0e02a997438d463c30b0ae5a4,
     type: 3}
+--- !u!114 &783064352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 783064345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &999559981
 GameObject:
   m_ObjectHideFlags: 0

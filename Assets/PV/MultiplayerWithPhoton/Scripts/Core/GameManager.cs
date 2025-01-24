@@ -1,6 +1,7 @@
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.SceneManagement;
+using Photon.Realtime;
 
 namespace PV.Multiplayer
 {
@@ -58,6 +59,8 @@ namespace PV.Multiplayer
             // Instantiating player in network.
             PlayerController player = PhotonNetwork.Instantiate(playerPrefab.name, _spawnPoint.position, _spawnPoint.rotation).GetComponent<PlayerController>();
             CameraFollow.Instance.Init(player);
+
+            GameUIManager.Instance.photonView.RPC(nameof(GameUIManager.Instance.LogSpawned), RpcTarget.All, player.photonView.Owner.NickName);
         }
 
         public void ReSpawn(PlayerController player)
@@ -67,6 +70,11 @@ namespace PV.Multiplayer
             player.gameObject.SetActive(false);
             player.transform.SetPositionAndRotation(_spawnPoint.position, _spawnPoint.rotation);
             player.gameObject.SetActive(true);
+        }
+
+        public override void OnPlayerLeftRoom(Player otherPlayer)
+        {
+            GameUIManager.Instance.LogLeft(otherPlayer.NickName);
         }
 
         public override void OnLeftRoom()
