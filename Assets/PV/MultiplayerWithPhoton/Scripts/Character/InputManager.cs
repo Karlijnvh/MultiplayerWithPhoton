@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,9 +5,12 @@ namespace PV.Multiplayer
 {
     public class InputManager : MonoBehaviour
     {
+        public static InputManager Instance;
+
         public Vector3 move;
         public Vector2 look;
         public bool jump;
+        public bool attack;
         public bool isAiming;
 
         private InputActions _inputActions;
@@ -16,6 +18,7 @@ namespace PV.Multiplayer
 
         private void Awake()
         {
+            Instance = this;
             _inputActions = new();
         }
 
@@ -34,6 +37,8 @@ namespace PV.Multiplayer
             _inputActions.Player.Jump.canceled += c => jump = false;
             _inputActions.Player.Aim.performed += c => isAiming = true;
             _inputActions.Player.Aim.canceled += c => isAiming = false;
+            _inputActions.Player.Attack.performed += c => attack = true;
+            _inputActions.Player.Attack.canceled += c => attack = false;
         }
 
         private void OnLook(InputAction.CallbackContext context)

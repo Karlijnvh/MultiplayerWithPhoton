@@ -1,12 +1,13 @@
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.SceneManagement;
-using Cinemachine;
 
 namespace PV.Multiplayer
 {
     public class GameManager : MonoBehaviourPunCallbacks
     {
+        public static GameManager Instance { get; private set; }
+
         public bool lockCursor;
         public GameObject playerPrefab;
         public Transform[] spawnPoints;
@@ -14,7 +15,12 @@ namespace PV.Multiplayer
         [Header("Test")]
         public bool isTest = false;
 
-        private Vector3 _spawnPosition;
+        private Transform _spawnPoint;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         // Start is called before the first frame update
         void Start()
@@ -47,12 +53,20 @@ namespace PV.Multiplayer
         private void SpawnPlayer()
         {
             // Getting a random point from spawn points.
-            _spawnPosition = spawnPoints[Random.Range(0, spawnPoints.Length)].position;
+            _spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
             // Instantiating player in network.
-            GameObject player = PhotonNetwork.Instantiate(playerPrefab.name, _spawnPosition, Quaternion.identity);
+            PlayerController player = PhotonNetwork.Instantiate(playerPrefab.name, _spawnPoint.position, _spawnPoint.rotation).GetComponent<PlayerController>();
+            CameraFollow.Instance.Init(player);
+        }
 
-            CameraFollow.Instance.Init(player.GetComponent<PlayerController>());
+        public void ReSpawn(PlayerController player)
+        {
+            _spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+
+            player.gameObject.SetActive(false);
+            player.transform.SetPositionAndRotation(_spawnPoint.position, _spawnPoint.rotation);
+            player.gameObject.SetActive(true);
         }
 
         public override void OnLeftRoom()

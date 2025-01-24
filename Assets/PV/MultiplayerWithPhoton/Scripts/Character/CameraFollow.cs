@@ -23,7 +23,7 @@ namespace PV.Multiplayer
             Instance = this;
             if (input == null)
             {
-                input = FindObjectOfType<InputManager>();
+                input = InputManager.Instance;
             }
         }
 

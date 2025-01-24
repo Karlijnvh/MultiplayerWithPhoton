@@ -15,39 +15,59 @@ namespace PV.Multiplayer
         public bool isDead = false;
         public int health = 100;
 
-        private PhotonView _photonView;
+        internal PhotonView photonView;
+
+        private WeaponManager weaponManager;
+        private string lastAttackerName;
 
         protected override void Awake()
         {
             base.Awake();
 
-            _photonView = GetComponent<PhotonView>();
+            photonView = GetComponent<PhotonView>();
+            weaponManager = GetComponent<WeaponManager>();
 
             if (playerUI == null)
             {
                 playerUI = GetComponentInChildren<PlayerUI>(true);
             }
+
+            if (photonView != null && !photonView.IsMine)
+            {
+                enabled = false;
+                if (playerUI != null)
+                {
+                    playerUI.enabled = false;
+                    playerUI.gameObject.SetActive(false);
+                }
+            }
         }
 
         private void FixedUpdate()
         {
-            if (isDead || _photonView == null || !_photonView.IsMine)
+            if (photonView == null)
             {
                 return;
             }
 
             UpdateMovement();
 
+            if (weaponManager != null)
+            {
+                weaponManager.DoUpdate();
+            }
+
             if (playerUI != null)
             {
-                playerUI.EnableReticle(_input.isAiming);
+                playerUI.EnableReticle(Input.isAiming);
             }
         }
 
         [PunRPC]
-        public void TakeDamage(int damage)
+        public void TakeDamage(int damage, string attackerName)
         {
             health -= damage;
+            lastAttackerName = attackerName;
 
             if (playerUI != null)
             {
@@ -56,8 +76,21 @@ namespace PV.Multiplayer
 
             if (health <= 0)
             {
-                isDead = true;
+                Die();
             }
+        }
+
+        private void Die()
+        {
+            health = 100;
+
+            if (playerUI != null)
+            {
+                playerUI.SetHealth(health);
+            }
+
+            GameUIManager.Instance.Log($"{lastAttackerName} killed {photonView.Owner.NickName}");
+            GameManager.Instance.ReSpawn(this);
         }
     }
 }

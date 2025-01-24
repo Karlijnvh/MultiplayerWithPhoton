@@ -37,7 +37,12 @@ namespace PV.Multiplayer
         [Tooltip("Layer to check ground.")]
         public LayerMask groundLayer;
 
-        protected InputManager _input;
+        protected InputManager Input {
+            get
+            {
+                return InputManager.Instance;
+            } 
+        }
 
         private Rigidbody _rigid;
         private Transform _cameraTransform;
@@ -57,7 +62,6 @@ namespace PV.Multiplayer
         protected virtual void Awake()
         {
             _rigid = GetComponent<Rigidbody>();
-            _input = FindObjectOfType<InputManager>();
             _cameraTransform = Camera.main.transform;
         }
 
@@ -83,14 +87,14 @@ namespace PV.Multiplayer
             // Deciding the move speed of player.
             _moveSpeed = moveSpeed;
 
-            if (_input.move == Vector3.zero)
+            if (Input.move == Vector3.zero)
             {
                 _moveSpeed = 0;
             }
 
             // Calculating move direction based on camera forward and player input.
-            _moveDirection = _cameraTransform.forward * _input.move.z;
-            _moveDirection += _cameraTransform.right * _input.move.x;
+            _moveDirection = _cameraTransform.forward * Input.move.z;
+            _moveDirection += _cameraTransform.right * Input.move.x;
             _moveDirection.y = 0;
             _moveDirection.Normalize();
 
@@ -146,7 +150,7 @@ namespace PV.Multiplayer
                 }
 
                 // Checking jump input
-                if (_input.jump)
+                if (Input.jump)
                 {
                     isJumping = true;
 
