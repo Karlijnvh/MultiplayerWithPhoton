@@ -26,6 +26,8 @@ namespace PV.Multiplayer
         // Reference to the PhotonView for network synchronization.
         internal PhotonView photonView;
 
+        private const string UIPath = "UI/";
+
         private void Awake()
         {
             Instance = this;
@@ -70,7 +72,7 @@ namespace PV.Multiplayer
             if (logTextPrefab != null && logContainer != null)
             {
                 // Instantiate the log text prefab and set it as a child of the log container.
-                _logText = PhotonNetwork.Instantiate(logTextPrefab.name, Vector3.zero, Quaternion.identity)
+                _logText = PhotonNetwork.Instantiate(UIPath + logTextPrefab.name, Vector3.zero, Quaternion.identity)
                     .GetComponent<TextMeshProUGUI>();
                 _logText.transform.SetParent(logContainer);
 

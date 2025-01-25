@@ -192,7 +192,6 @@ MonoBehaviour:
     m_Bits: 1
   playerUI: {fileID: 5955608517526727750}
   followTarget: {fileID: 2751430860032435540}
-  isDead: 0
   health: 100
 --- !u!114 &8249035633312587225
 MonoBehaviour:

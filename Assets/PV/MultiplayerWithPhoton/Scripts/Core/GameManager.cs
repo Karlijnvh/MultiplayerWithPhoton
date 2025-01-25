@@ -24,6 +24,8 @@ namespace PV.Multiplayer
         // The selected spawn point for the player.
         private Transform _spawnPoint;
 
+        private const string CharacterPath = "Character/";
+
         private void Awake()
         {
             Instance = this;
@@ -65,7 +67,7 @@ namespace PV.Multiplayer
             _spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
             // Instantiate the player prefab on the network.
-            PlayerController player = PhotonNetwork.Instantiate(playerPrefab.name, _spawnPoint.position, _spawnPoint.rotation).GetComponent<PlayerController>();
+            PlayerController player = PhotonNetwork.Instantiate(CharacterPath + playerPrefab.name, _spawnPoint.position, _spawnPoint.rotation).GetComponent<PlayerController>();
 
             // Initialize the camera to follow the newly spawned player.
             CameraFollow.Instance.Init(player);
