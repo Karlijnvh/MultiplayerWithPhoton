@@ -37,19 +37,14 @@ namespace PV.Multiplayer
         [Tooltip("Layer to check ground.")]
         public LayerMask groundLayer;
 
-        protected InputManager Input {
-            get
-            {
-                return InputManager.Instance;
-            } 
-        }
+        protected InputManager Input => InputManager.Instance;
 
         private Rigidbody _rigid;
         private Transform _cameraTransform;
 
         private float _moveSpeed;
         private float _currentMoveSpeed;
-        private float _vertVel;
+        private float _vertVel; // Vertical velocity (for jumping).
 
         private Vector3 _currentMoveVelocity;
         private Vector3 _moveDirection;
@@ -61,10 +56,14 @@ namespace PV.Multiplayer
 
         protected virtual void Awake()
         {
+            // References to the Rigidbody and camera transform.
             _rigid = GetComponent<Rigidbody>();
             _cameraTransform = Camera.main.transform;
         }
 
+        /// <summary>
+        /// Central method to update all movement-related functionality.
+        /// </summary>
         public void UpdateMovement()
         {
             CheckGrounded();
@@ -75,34 +74,34 @@ namespace PV.Multiplayer
 
         private void CheckGrounded()
         {
-            // Getting sphere position with some offset so ground check can be detected accurately.
+            // Determine if the player is grounded using a sphere check.
             _spherePosition = transform.position;
             _spherePosition.y -= groundOffset;
-            // Casting rays in down direction to check if it hits ground.
             isGrounded = Physics.CheckSphere(_spherePosition, groundCheckRadius, groundLayer, QueryTriggerInteraction.Ignore);
         }
 
         private void HandleMovement()
         {
-            // Deciding the move speed of player.
+            // Determine the player's move speed based on input.
             _moveSpeed = moveSpeed;
 
-            if (Input.move == Vector3.zero)
+            if (Input.move == Vector2.zero)
             {
-                _moveSpeed = 0;
+                _moveSpeed = 0; // Stop moving if there's no input.
             }
 
-            // Calculating move direction based on camera forward and player input.
-            _moveDirection = _cameraTransform.forward * Input.move.z;
+            // Calculate the move direction based on camera orientation and input.
+            _moveDirection = _cameraTransform.forward * Input.move.y;
             _moveDirection += _cameraTransform.right * Input.move.x;
-            _moveDirection.y = 0;
+            _moveDirection.y = 0; // Ensure movement stays on the ground plane.
             _moveDirection.Normalize();
 
-            // Calculating the current speed of the player.
+            // Smoothly adjust the player's speed toward the target speed.
             _currentMoveVelocity = _rigid.velocity;
             _currentMoveVelocity.y = 0;
             _currentMoveSpeed = _currentMoveVelocity.magnitude;
 
+            // Smoothly interpolate the movement speed for smooth acceleration/deceleration.
             if (_currentMoveSpeed < _moveSpeed - 0.1f || _currentMoveSpeed > _moveSpeed + 0.1f)
             {
                 _moveSpeed = Mathf.Lerp(_currentMoveSpeed, _moveSpeed, speedChangeRate * Time.deltaTime);
@@ -110,29 +109,28 @@ namespace PV.Multiplayer
 
             _moveDirection *= _moveSpeed;
 
-            // Applying direction velocity.
+            // Apply the calculated movement velocity to the Rigidbody.
             _rigid.velocity = _moveDirection;
         }
 
         private void HandleRotation()
         {
-            // Calculating move direction based on camera forward and player input
+            // Calculate the player's facing direction based on the camera.
             _targetDirection = _cameraTransform.forward;
             _targetDirection.Normalize();
 
-            // Checking if target direction is zero, then applying forward direction
             if (_targetDirection == Vector3.zero)
             {
-                _targetDirection = transform.forward;
+                _targetDirection = transform.forward; // Maintain forward direction if no input.
             }
 
-            // Getting rotation from direction
+            // Generate a target rotation toward the direction and smooth the transition.
             _targetRotation = Quaternion.LookRotation(_targetDirection);
-            // Resetting x and z axis, So player rotates only in y-axis
+            // Lock x and z axis rotation.
             _targetRotation.x = 0;
             _targetRotation.z = 0;
 
-            // Smoothing the transition effect from transform's rotation to target rotation
+            // Smoothly transition to the target rotation.
             _playerRotation = Quaternion.Slerp(transform.rotation, _targetRotation, rotationSmoothRate * Time.fixedDeltaTime);
             transform.rotation = _playerRotation;
         }
@@ -149,39 +147,32 @@ namespace PV.Multiplayer
                     _vertVel = -3;
                 }
 
-                // Checking jump input
+                // Check if jump input is pressed.
                 if (Input.jump)
                 {
                     isJumping = true;
 
-                    // Applying move direction so new velocity does
-                    // not modify the direction player is going
+                    // Calculate initial vertical velocity for the jump.
                     _verticalVelocity = _moveDirection;
-
-                    // Calculating square root of (-2 * jump height * gravity)
-                    // to get velocity needed to jump to the specified height
                     _vertVel = Mathf.Sqrt(-2 * jumpHeight * customGravity);
                     _verticalVelocity.y = _vertVel;
 
-                    // Applying velocity
+                    // Apply jump velocity to the Rigidbody.
                     _rigid.velocity = _verticalVelocity;
                 }
             }
             else
             {
-
-                // Set vertical velocity to original velocity
+                // Set current velocity.
                 _verticalVelocity = _rigid.velocity;
 
-                // Keep increase gravity if it does not reach its limit.
-                // Limit is useful to stop it increasing infinitely.
+                // Gradually increase gravity up to a limit.
                 if (_vertVel > -50)
                 {
-                    // Gradually increasing gravity
                     _vertVel += customGravity * Time.deltaTime;
                 }
 
-                // Set vertical velocity on y axis
+                // Apply vertical velocity with gravity.
                 _verticalVelocity.y = _vertVel;
                 _rigid.velocity = _verticalVelocity;
             }
