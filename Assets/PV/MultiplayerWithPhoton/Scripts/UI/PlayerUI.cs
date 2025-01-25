@@ -15,9 +15,6 @@ namespace PV.Multiplayer
 
         [Tooltip("The reticle GameObject for aiming visuals.")]
         [SerializeField] private GameObject reticle;
-
-        [Tooltip("RectTransform for customizing reticle properties (e.g., positioning).")]
-        [SerializeField] private RectTransform aimReticle;
         
         // Delay duration for enabling/disabling the reticle.
         private readonly WaitForSeconds waitSeconds = new(0.15f);
@@ -45,15 +42,6 @@ namespace PV.Multiplayer
         {
             yield return waitSeconds;
             reticle.SetActive(enable);
-        }
-
-        /// <summary>
-        /// Provides access to the RectTransform of the aim reticle.
-        /// </summary>
-        /// <returns>The RectTransform of the aim reticle.</returns>
-        public RectTransform GetReticle()
-        {
-            return aimReticle;
         }
     }
 }

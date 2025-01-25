@@ -1,4 +1,6 @@
 using Photon.Pun;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -15,18 +17,14 @@ namespace PV.Multiplayer
         [Tooltip("Maximum number of visible log messages at a time.")]
         public int numberOfVisibleLogs = 4;
 
-        [Tooltip("Container for holding log messages.")]
-        public Transform logContainer;
+        [Tooltip("The log text UI element.")]
+        public TextMeshProUGUI logText;
 
-        [Tooltip("Prefab for the log text UI element.")]
-        public GameObject logTextPrefab;
-
-        // Reference to the latest instantiated log message.
-        private TextMeshProUGUI _logText;
         // Reference to the PhotonView for network synchronization.
         internal PhotonView photonView;
 
-        private const string UIPath = "UI/";
+        // Queue to manage log messages in the UI.
+        private Queue<string> _logs = new();
 
         private void Awake()
         {
@@ -41,17 +39,24 @@ namespace PV.Multiplayer
         /// <param name="victimName">The name of the victim player.</param>
         public void LogKilled(string attackerName, string victimName)
         {
-            Log($"{attackerName} killed {victimName}.");
+            // Ensure only the MasterClient broadcasts the log message to all players.
+            if (PhotonNetwork.IsMasterClient)
+            {
+                photonView.RPC(nameof(Log), RpcTarget.All, $"{attackerName} killed {victimName}.");
+            }
         }
 
         /// <summary>
         /// Logs a message indicating a player has spawned.
         /// </summary>
         /// <param name="playerName">The name of the spawned player.</param>
-        [PunRPC]
         public void LogSpawned(string playerName)
         {
-            Log($"{playerName} spawned.");
+            // Ensure only the MasterClient broadcasts the log message to all players.
+            if (PhotonNetwork.IsMasterClient)
+            {
+                photonView.RPC(nameof(Log), RpcTarget.All, $"{playerName} spawned.");
+            }
         }
 
         /// <summary>
@@ -60,35 +65,53 @@ namespace PV.Multiplayer
         /// <param name="playerName">The name of the player who left.</param>
         public void LogLeft(string playerName)
         {
-            Log($"{playerName} left.");
+            // Ensure only the MasterClient broadcasts the log message to all players.
+            if (PhotonNetwork.IsMasterClient)
+            {
+                photonView.RPC(nameof(Log), RpcTarget.All, $"{playerName} left.");
+            }
         }
 
         /// <summary>
         /// Handles the creation and display of a log message in the UI.
         /// </summary>
         /// <param name="message">The message to display in the log.</param>
+        [PunRPC]
         private void Log(string message)
         {
-            if (logTextPrefab != null && logContainer != null)
+            if (logText != null)
             {
-                // Instantiate the log text prefab and set it as a child of the log container.
-                _logText = PhotonNetwork.Instantiate(UIPath + logTextPrefab.name, Vector3.zero, Quaternion.identity)
-                    .GetComponent<TextMeshProUGUI>();
-                _logText.transform.SetParent(logContainer);
-
-                // Set the message text.
-                _logText.text = message;
+                _logs.Enqueue(message);
+                UpdateLog(); // Update the displayed log.
 
                 // Calculate the destroy delay based on the number of visible logs.
-                float destroyDelay = logDuration;
-                if (logContainer.childCount > numberOfVisibleLogs)
+                float delay = logDuration;
+                if (_logs.Count > numberOfVisibleLogs)
                 {
-                    int diff = Mathf.FloorToInt(logContainer.childCount / numberOfVisibleLogs) - 1;
-                    destroyDelay = logDuration * (2 + diff);
+                    int diff = Mathf.FloorToInt(_logs.Count / numberOfVisibleLogs) - 1;
+                    delay = logDuration * (2 + diff);
                 }
 
-                // Destroy the log message after the calculated delay.
-                Destroy(_logText.gameObject, destroyDelay);
+                // Start a coroutine to remove the log after the calculated delay.
+                StartCoroutine(RemoveLog(delay));
+            }
+        }
+
+        private void UpdateLog()
+        {
+            // Combine all log messages into a single string and update the UI.
+            logText.text = string.Join("\n", _logs.ToArray());
+        }
+
+        private IEnumerator RemoveLog(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            if (_logs.Count > 0)
+            {
+                // Remove the oldest log and refresh the displayed logs.
+                _logs.Dequeue();
+                UpdateLog();
             }
         }
     }

@@ -44,14 +44,13 @@ namespace PV.Multiplayer
             if (followCamera != null)
             {
                 followCamera.Follow = playerController.followTarget;
+                _followTarget = playerController.followTarget;
             }
 
             // Configure the aim camera with the follow target and aim reticle.
             if (aimCamera != null)
             {
                 aimCamera.Follow = playerController.followTarget;
-                _followTarget = playerController.followTarget;
-                aimCamera.GetComponent<Cinemachine3rdPersonAim>().AimTargetReticle = playerController.playerUI.GetReticle();
             }
         }
 

@@ -24,8 +24,6 @@ namespace PV.Multiplayer
         // The selected spawn point for the player.
         private Transform _spawnPoint;
 
-        private const string CharacterPath = "Character/";
-
         private void Awake()
         {
             Instance = this;
@@ -67,13 +65,10 @@ namespace PV.Multiplayer
             _spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
             // Instantiate the player prefab on the network.
-            PlayerController player = PhotonNetwork.Instantiate(CharacterPath + playerPrefab.name, _spawnPoint.position, _spawnPoint.rotation).GetComponent<PlayerController>();
+            PlayerController player = PhotonNetwork.Instantiate(ResourcePaths.Character + playerPrefab.name, _spawnPoint.position, _spawnPoint.rotation).GetComponent<PlayerController>();
 
             // Initialize the camera to follow the newly spawned player.
             CameraFollow.Instance.Init(player);
-
-            // Notify all clients that the player has spawned.
-            GameUIManager.Instance.photonView.RPC(nameof(GameUIManager.Instance.LogSpawned), RpcTarget.All, player.photonView.Owner.NickName);
         }
 
         /// <summary>
@@ -89,6 +84,12 @@ namespace PV.Multiplayer
             player.gameObject.SetActive(false);
             player.transform.SetPositionAndRotation(_spawnPoint.position, _spawnPoint.rotation);
             player.gameObject.SetActive(true);
+        }
+
+        public override void OnPlayerEnteredRoom(Player newPlayer)
+        {
+            // Logs the event to the UI about the player who left.
+            GameUIManager.Instance.LogSpawned(newPlayer.NickName);
         }
 
         public override void OnPlayerLeftRoom(Player otherPlayer)
