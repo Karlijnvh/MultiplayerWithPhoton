@@ -18,9 +18,6 @@ namespace PV.Multiplayer
         [Tooltip("Array of spawn points where players can be spawned.")]
         public Transform[] spawnPoints;
 
-        [Header("Test")]
-        public bool isTest = false;
-
         // The selected spawn point for the player.
         private Transform _spawnPoint;
 
@@ -33,7 +30,7 @@ namespace PV.Multiplayer
         void Start()
         {
             // If not in testing mode and not connected to Photon, load the main menu scene.
-            if (!isTest && !PhotonNetwork.IsConnected)
+            if (!PhotonNetwork.IsConnected)
             {
                 SceneManager.LoadScene(0);
             }
@@ -43,7 +40,7 @@ namespace PV.Multiplayer
                 {
                     Debug.LogError("Player prefab is missing!");
                 }
-                else if (!isTest) 
+                else
                 { 
                     SpawnPlayer();
                 }
