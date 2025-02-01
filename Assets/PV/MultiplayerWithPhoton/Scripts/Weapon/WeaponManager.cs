@@ -1,3 +1,4 @@
+using Photon.Pun;
 using UnityEngine;
 
 namespace PV.Multiplayer
@@ -10,6 +11,13 @@ namespace PV.Multiplayer
         private float _attackDelay = 0f;
 
         private InputManager Input => InputManager.Instance;
+
+        private int _playerViewID;
+
+        private void Start()
+        {
+            _playerViewID = GetComponent<PhotonView>().ViewID;
+        }
 
         /// <summary>
         /// Updates weapon-related behavior.
@@ -31,7 +39,7 @@ namespace PV.Multiplayer
                     _attackDelay = 1 / primaryWeapon.fireRate;
 
                     // Trigger the weapon fire.
-                    primaryWeapon.Fire();
+                    primaryWeapon.Fire(_playerViewID);
                 }
 
                 // Reduce the attack delay timer.

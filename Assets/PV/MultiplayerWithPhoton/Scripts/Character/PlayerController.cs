@@ -1,3 +1,4 @@
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using UnityEngine;
 
@@ -19,18 +20,22 @@ namespace PV.Multiplayer
 
         // Reference to the PhotonView component for network synchronization.
         internal PhotonView photonView;
+        // Used to store the player stats (eg. kills, deaths, score, etc.).
+        internal Stats stats;
 
         // Manages the player's weapon state and actions.
-        private WeaponManager weaponManager;
+        private WeaponManager _weaponManager;
         // Tracks the name of the last player who dealt damage.
-        private string lastAttackerName;
+        private PhotonView _lastAttacker;
+        // Tracks the last attacker id.
+        private int _lastAttackerID;
 
         protected override void Awake()
         {
             base.Awake();
 
             photonView = GetComponent<PhotonView>();
-            weaponManager = GetComponent<WeaponManager>();
+            _weaponManager = GetComponent<WeaponManager>();
 
             // Assign the PlayerUI component if not already set.
             if (playerUI == null)
@@ -39,7 +44,7 @@ namespace PV.Multiplayer
             }
 
             // Disable components if this instance does not belong to the local player.
-            if (photonView != null && !photonView.IsMine)
+            if (!photonView.IsMine)
             {
                 enabled = false;
                 if (playerUI != null)
@@ -48,6 +53,10 @@ namespace PV.Multiplayer
                     playerUI.gameObject.SetActive(false);
                 }
             }
+
+            // Initialize stats and store data 
+            stats = new();
+            GameUIManager.Instance.SetStats(this);
         }
 
         private void FixedUpdate()
@@ -60,10 +69,10 @@ namespace PV.Multiplayer
             // Update movement based on player input.
             UpdateMovement();
 
-            if (weaponManager != null)
+            if (_weaponManager != null)
             {
                 // Update weapon-related logic.
-                weaponManager.DoUpdate();
+                _weaponManager.DoUpdate();
             }
 
             if (playerUI != null)
@@ -79,10 +88,16 @@ namespace PV.Multiplayer
         /// <param name="damage">The amount of damage dealt.</param>
         /// <param name="attackerName">The name of the player who dealt the damage.</param>
         [PunRPC]
-        public void TakeDamage(int damage, string attackerName)
+        public void TakeDamage(int damage, int attackerID)
         {
             health -= damage; // Reduce the player's health.
-            lastAttackerName = attackerName; // Record the attacker's name.
+
+            // Change last attacker on first time or when attacker changes.
+            if (_lastAttacker == null || _lastAttackerID != attackerID)
+            {
+                _lastAttackerID = attackerID;
+                _lastAttacker = PhotonView.Find(attackerID); // Record the last attacker.
+            }
 
             if (playerUI != null)
             {
@@ -106,10 +121,68 @@ namespace PV.Multiplayer
                 playerUI.SetHealth(health);
             }
 
+            if (_lastAttacker.TryGetComponent(out PlayerController attacker))
+            {
+                attacker.stats.AddKill();
+            }
+            else
+            {
+                Debug.LogError("Last attacker does not have PlayerController!");
+            }
+
+            stats.AddDeaths();
+
             // Log the kill in the game UI.
-            GameUIManager.Instance.LogKilled(lastAttackerName, photonView.Owner.NickName);
+            GameUIManager.Instance.LogKilled(_lastAttacker.Owner.NickName, photonView.Owner.NickName);
             // Notify the game manager to respawn the player.
             GameManager.Instance.ReSpawn(this);
+        }
+    }
+
+    [System.Serializable]
+    public class Stats
+    {
+        public const string KillsKey = "Kills";
+        public const string DeathsKey = "Deaths";
+        public const string ScoreKey = "Score";
+
+        public int Kills { get; private set; }
+        public int Deaths { get; private set; }
+        public int Score { get; private set; }
+
+        private Hashtable _stats;
+
+        public Stats()
+        {
+            _stats = new()
+            {
+                { KillsKey, 0 },
+                { DeathsKey, 0 },
+                { ScoreKey, 0 },
+            };
+            PhotonNetwork.LocalPlayer.SetCustomProperties(_stats);
+        }
+
+        public void AddKill()
+        {
+            Kills++;
+            _stats[KillsKey] = Kills;
+            UpdateStat();
+        }
+
+        public void AddDeaths()
+        {
+            Deaths++;
+            _stats[DeathsKey] = Deaths;
+            UpdateStat();
+        }
+
+        private void UpdateStat()
+        {
+            Score = Kills - Deaths;
+            _stats[ScoreKey] = Score;
+            PhotonNetwork.LocalPlayer.SetCustomProperties(_stats);
+            GameUIManager.Instance.UpdateStats(PhotonNetwork.LocalPlayer.ActorNumber);
         }
     }
 }

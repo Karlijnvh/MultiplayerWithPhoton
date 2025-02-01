@@ -52,7 +52,7 @@ namespace PV.Multiplayer
         /// <summary>
         /// Fires the weapon, performing a raycast to detect and damage targets within range.
         /// </summary>
-        public void Fire()
+        public void Fire(int attackerID)
         {
             if (shootParticle != null)
             {
@@ -71,7 +71,7 @@ namespace PV.Multiplayer
                 if (_hit.transform.TryGetComponent(out _player))
                 {
                     // Apply damage to the hit player across all clients.
-                    _player.photonView.RPC(nameof(_player.TakeDamage), RpcTarget.All, damage, PhotonNetwork.NickName);
+                    _player.photonView.RPC(nameof(_player.TakeDamage), RpcTarget.All, damage, attackerID);
                 }
 
                 if (hitParticle != null)

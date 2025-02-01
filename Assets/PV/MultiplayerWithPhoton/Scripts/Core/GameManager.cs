@@ -1,11 +1,10 @@
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.SceneManagement;
-using Photon.Realtime;
 
 namespace PV.Multiplayer
 {
-    public class GameManager : MonoBehaviourPunCallbacks
+    public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
 
@@ -81,30 +80,6 @@ namespace PV.Multiplayer
             player.gameObject.SetActive(false);
             player.transform.SetPositionAndRotation(_spawnPoint.position, _spawnPoint.rotation);
             player.gameObject.SetActive(true);
-        }
-
-        public override void OnPlayerEnteredRoom(Player newPlayer)
-        {
-            // Logs the event to the UI about the player who left.
-            GameUIManager.Instance.LogSpawned(newPlayer.NickName);
-        }
-
-        public override void OnPlayerLeftRoom(Player otherPlayer)
-        {
-            // Logs the event to the UI about the player who left.
-            GameUIManager.Instance.LogLeft(otherPlayer.NickName);
-        }
-
-        public override void OnLeftRoom()
-        {
-            // Return to the main menu when the local player leaves the room.
-            SceneManager.LoadScene(0);
-        }
-
-        public void LeaveRoom()
-        {
-            // Initiate leaving the room.
-            PhotonNetwork.LeaveRoom();
         }
     }
 }

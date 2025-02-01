@@ -1,12 +1,14 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace PV.Multiplayer
 {
-    public class GameUIManager : MonoBehaviour
+    public class GameUIManager : MonoBehaviourPunCallbacks
     {
         public static GameUIManager Instance { get; private set; }
 
@@ -20,16 +22,48 @@ namespace PV.Multiplayer
         [Tooltip("The log text UI element.")]
         public TextMeshProUGUI logText;
 
-        // Reference to the PhotonView for network synchronization.
-        internal PhotonView photonView;
+        [Tooltip("List of player stat's ui representation.")]
+        public UIStat[] stats;
 
         // Queue to manage log messages in the UI.
         private Queue<string> _logs = new();
 
+        // Track the total player in room
+        private int _playerCount = 0;
+
         private void Awake()
         {
             Instance = this;
-            photonView = GetComponent<PhotonView>();
+
+            // Disabling leaderboard stats on start.
+            foreach(var stat in stats)
+            {
+                stat.Disable();
+            }
+        }
+
+        public override void OnPlayerEnteredRoom(Player newPlayer)
+        {
+            // Logs the event to the UI about the player who left.
+            LogSpawned(newPlayer.NickName);
+        }
+
+        public override void OnPlayerLeftRoom(Player otherPlayer)
+        {
+            // Logs the event to the UI about the player who left.
+            LogLeft(otherPlayer.NickName);
+        }
+
+        public override void OnLeftRoom()
+        {
+            // Return to the main menu when the local player leaves the room.
+            SceneManager.LoadScene(0);
+        }
+
+        public void LeaveRoom()
+        {
+            // Initiate leaving the room.
+            PhotonNetwork.LeaveRoom();
         }
 
         /// <summary>
@@ -112,6 +146,38 @@ namespace PV.Multiplayer
                 // Remove the oldest log and refresh the displayed logs.
                 _logs.Dequeue();
                 UpdateLog();
+            }
+        }
+
+        public void SetStats(PlayerController player)
+        {
+            if (_playerCount >= stats.Length)
+            {
+                return;
+            }
+
+            stats[_playerCount].InitData(player);
+            stats[_playerCount].Enable();
+            _playerCount++;
+        }
+
+        public void UpdateStats(int playerNumber)
+        {
+            if (!PhotonNetwork.IsMasterClient)
+            {
+                return;
+            }
+
+            if (stats.Length > 0)
+            {
+                foreach (var stat in stats)
+                {
+                    if (stat.playerNumber == playerNumber)
+                    {
+                        stat.UpdateData();
+                        break;
+                    }
+                }
             }
         }
     }
