@@ -1,47 +1,40 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using System;
+using System.Collections.Generic;
 
 namespace PV.Multiplayer
 {
+    public enum NetworkEvent { JoinedLobby, JoinedRoom, CreatedRoom }
+
     public class NetworkManager : MonoBehaviourPunCallbacks
     {
         public static NetworkManager Instance;
 
         [Tooltip("Event triggered during ongoing network processes like connecting or joining a room.")]
-        public static System.Action<string> OnDoProcess;
+        public static Action<string> OnDoProcess;
+        [Tooltip("Event triggered when player joins a lobby.")]
+        public static Action<NetworkEvent> OnNetworkEvent;
         [Tooltip("Event triggered when a network operation fails, such as disconnection or failed room join.")]
-        public static System.Action OnProcessFailed;
+        public static Action OnError;
 
-        // Holds the name of the room to join or create.
-        private string _roomName;
+        [Tooltip("Maximum players that can join a single room.")]
+        public int maxPlayers = 4;
+
+        [HideInInspector]
+        public bool IsPlayerInRoom { get; private set; }
+
+        private UIManager _manager;
 
         private void Awake()
         {
             Instance = this;
+            _manager = FindObjectOfType<UIManager>(true);
         }
 
-        /// <summary>
-        /// Connects to the Photon server and joins or creates a room with the specified room name and player name.
-        /// </summary>
-        /// <param name="roomName">Name of the room to join or create.</param>
-        /// <param name="playerName">Player's display name.</param>
-        public void Connect(string roomName, string playerName)
+        private void Start()
         {
-            _roomName = roomName;
-
-            // Set player nickname and store it locally.
-            if (playerName.Trim().Length > 0)
-            {
-                PhotonNetwork.NickName = playerName;
-                PlayerPrefs.SetString("PlayerName", playerName);
-            }
-            else
-            {
-                PhotonNetwork.NickName = $"Player{Random.Range(100, 9999)}";
-                PlayerPrefs.SetString("PlayerName", PhotonNetwork.NickName);
-            }
-
             // Check if the client is already connected to Photon.
             if (!PhotonNetwork.IsConnected)
             {
@@ -49,12 +42,23 @@ namespace PV.Multiplayer
                 OnDoProcess?.Invoke("Connecting...");
                 PhotonNetwork.ConnectUsingSettings();
             }
-            else
+        }
+
+        public void CreateRoom(string roomName)
+        {
+            // Notify listeners about room joining attempt.
+            OnDoProcess?.Invoke($"Joining Room : {roomName}");
+            var roomOptions = new RoomOptions()
             {
-                // Notify listeners about room joining attempt.
-                OnDoProcess?.Invoke($"Joining Room : {_roomName}");
-                PhotonNetwork.JoinOrCreateRoom(_roomName, null, null);
-            }
+                MaxPlayers = maxPlayers,
+            };
+
+            PhotonNetwork.JoinOrCreateRoom(roomName, roomOptions, null);
+        }
+
+        public void JoinRoom(string roomName)
+        {
+            PhotonNetwork.JoinRoom(roomName);
         }
 
         public override void OnConnectedToMaster()
@@ -70,40 +74,42 @@ namespace PV.Multiplayer
         public override void OnDisconnected(DisconnectCause cause)
         {
             Debug.Log($"Disconnected from server.\nCause : {cause}");
-            OnProcessFailed?.Invoke();
+            OnError?.Invoke();
         }
 
         public override void OnJoinedLobby()
         {
             Debug.Log("Joined to Lobby.");
-
-            // Checking if room name is not null and empty.
-            if (_roomName != null && _roomName.Trim().Length > 0)
-            {
-                // Notify listeners about room joining attempt.
-                OnDoProcess?.Invoke($"Joining Room : {_roomName}");
-                // Attempt to join or create the specified room.
-                PhotonNetwork.JoinOrCreateRoom(_roomName, null, null);
-            }
-            else
-            {
-                Debug.Log("Room name is empty.");
-            }
+            OnNetworkEvent?.Invoke(NetworkEvent.JoinedLobby);
         }
 
         public override void OnJoinedRoom()
         {
             Debug.Log("Joined a room");
+            IsPlayerInRoom = true;
+            OnNetworkEvent?.Invoke(NetworkEvent.JoinedRoom);
+        }
 
-            // Load the game level upon successfully joining a room.
-            PhotonNetwork.LoadLevel(1);
+        public override void OnLeftRoom()
+        {
+            IsPlayerInRoom = false;
+        }
+
+        public override void OnRoomListUpdate(List<RoomInfo> roomList)
+        {
+            _manager.UpdateRoomList(roomList);
+        }
+
+        public override void OnCreatedRoom()
+        {
+            OnNetworkEvent?.Invoke(NetworkEvent.CreatedRoom);
         }
 
         public override void OnJoinRoomFailed(short returnCode, string message)
         {
             Debug.LogError($"Join Room Failed with return code {returnCode} and \nMessage: {message}");
             // Notify listeners about the failure.
-            OnProcessFailed?.Invoke();
+            OnError?.Invoke();
         }
     }
 }
