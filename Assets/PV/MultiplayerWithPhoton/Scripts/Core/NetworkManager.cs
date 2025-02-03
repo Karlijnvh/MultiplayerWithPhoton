@@ -1,8 +1,8 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
-using System;
 using System.Collections.Generic;
+using ExitGames.Client.Photon;
 
 namespace PV.Multiplayer
 {
@@ -12,25 +12,15 @@ namespace PV.Multiplayer
     {
         public static NetworkManager Instance;
 
-        [Tooltip("Event triggered during ongoing network processes like connecting or joining a room.")]
-        public static Action<string> OnDoProcess;
-        [Tooltip("Event triggered when player joins a lobby.")]
-        public static Action<NetworkEvent> OnNetworkEvent;
-        [Tooltip("Event triggered when a network operation fails, such as disconnection or failed room join.")]
-        public static Action OnError;
-
         [Tooltip("Maximum players that can join a single room.")]
         public int maxPlayers = 4;
 
         [HideInInspector]
-        public bool IsPlayerInRoom { get; private set; }
-
-        private UIManager _manager;
+        public bool isLeaving = false;
 
         private void Awake()
         {
             Instance = this;
-            _manager = FindObjectOfType<UIManager>(true);
         }
 
         private void Start()
@@ -39,15 +29,16 @@ namespace PV.Multiplayer
             if (!PhotonNetwork.IsConnected)
             {
                 // Notify listeners about the connection attempt.
-                OnDoProcess?.Invoke("Connecting...");
+                MenuUIManager.Instance.ShowFeedback("Connecting...");
                 PhotonNetwork.ConnectUsingSettings();
+                PhotonNetwork.AutomaticallySyncScene = true;
             }
         }
 
         public void CreateRoom(string roomName)
         {
             // Notify listeners about room joining attempt.
-            OnDoProcess?.Invoke($"Joining Room : {roomName}");
+            MenuUIManager.Instance.ShowFeedback($"Joining Room : {roomName}");
             var roomOptions = new RoomOptions()
             {
                 MaxPlayers = maxPlayers,
@@ -63,10 +54,8 @@ namespace PV.Multiplayer
 
         public override void OnConnectedToMaster()
         {
-            Debug.Log("Connected to Master.");
-
             // Notify listeners about the connection attempt.
-            OnDoProcess?.Invoke("Connecting to lobby...");
+            MenuUIManager.Instance.ShowFeedback("Connecting to lobby...");
             // Join the lobby after connecting to the master server.
             PhotonNetwork.JoinLobby();
         }
@@ -74,42 +63,59 @@ namespace PV.Multiplayer
         public override void OnDisconnected(DisconnectCause cause)
         {
             Debug.Log($"Disconnected from server.\nCause : {cause}");
-            OnError?.Invoke();
+            MenuUIManager.Instance.OnError();
         }
 
         public override void OnJoinedLobby()
         {
-            Debug.Log("Joined to Lobby.");
-            OnNetworkEvent?.Invoke(NetworkEvent.JoinedLobby);
+            MenuUIManager.Instance.OnNetworkEvent(NetworkEvent.JoinedLobby);
         }
 
         public override void OnJoinedRoom()
         {
-            Debug.Log("Joined a room");
-            IsPlayerInRoom = true;
-            OnNetworkEvent?.Invoke(NetworkEvent.JoinedRoom);
+            isLeaving = false;
+            MenuUIManager.Instance.OnNetworkEvent(NetworkEvent.JoinedRoom);
         }
 
-        public override void OnLeftRoom()
+        public override void OnPlayerEnteredRoom(Player newPlayer)
         {
-            IsPlayerInRoom = false;
+            MenuUIManager.Instance.OnPlayerEnter(newPlayer.ActorNumber);
+        }
+
+        public override void OnPlayerLeftRoom(Player otherPlayer)
+        {
+            MenuUIManager.Instance.OnPlayerLeft(otherPlayer);
+        }
+
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        {
+            MenuUIManager.Instance.OnPlayerPropsUpdate(targetPlayer.ActorNumber, changedProps);
         }
 
         public override void OnRoomListUpdate(List<RoomInfo> roomList)
         {
-            _manager.UpdateRoomList(roomList);
+            MenuUIManager.Instance.UpdateRoomList(roomList);
         }
 
         public override void OnCreatedRoom()
         {
-            OnNetworkEvent?.Invoke(NetworkEvent.CreatedRoom);
+            MenuUIManager.Instance.OnNetworkEvent(NetworkEvent.CreatedRoom);
+        }
+
+        public override void OnMasterClientSwitched(Player newMasterClient)
+        {
+            if (!isLeaving)
+            {
+                isLeaving = true;
+                PhotonNetwork.LeaveRoom();
+            }
         }
 
         public override void OnJoinRoomFailed(short returnCode, string message)
         {
             Debug.LogError($"Join Room Failed with return code {returnCode} and \nMessage: {message}");
             // Notify listeners about the failure.
-            OnError?.Invoke();
+            MenuUIManager.Instance.OnError();
         }
     }
 }

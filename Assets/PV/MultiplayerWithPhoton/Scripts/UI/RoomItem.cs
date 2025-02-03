@@ -18,9 +18,10 @@ namespace PV.Multiplayer
             _button.onClick.AddListener(onClickHandler);
         }
 
-        public void SetPlayerRatio(string playerRatio)
-        {
-            _playerRatio.text = playerRatio;
-        }
+        public void SetPlayerRatio(string playerRatio) => _playerRatio.text = playerRatio;
+
+        public void Enable() => _button.interactable = true;
+        
+        public void Disable() => _button.interactable = false;
     }
 }

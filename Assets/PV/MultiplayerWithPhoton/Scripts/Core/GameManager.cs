@@ -65,6 +65,9 @@ namespace PV.Multiplayer
 
             // Initialize the camera to follow the newly spawned player.
             CameraFollow.Instance.Init(player);
+
+            // Logs the event to the UI about a player spawned.
+            GameUIManager.Instance.LogSpawned(player.photonView.Owner.NickName);
         }
 
         /// <summary>

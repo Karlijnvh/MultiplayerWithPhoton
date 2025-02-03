@@ -1,4 +1,3 @@
-using ExitGames.Client.Photon;
 using Photon.Pun;
 using UnityEngine;
 
@@ -55,7 +54,7 @@ namespace PV.Multiplayer
             }
 
             // Initialize stats and store data 
-            stats = new();
+            stats = new(photonView.Owner.ActorNumber);
             GameUIManager.Instance.SetStats(this);
         }
 
@@ -150,39 +149,42 @@ namespace PV.Multiplayer
         public int Deaths { get; private set; }
         public int Score { get; private set; }
 
-        private Hashtable _stats;
+        private int _playerNumber = -1;
 
-        public Stats()
+        public Stats(int playerNumber)
         {
-            _stats = new()
-            {
-                { KillsKey, 0 },
-                { DeathsKey, 0 },
-                { ScoreKey, 0 },
-            };
-            PhotonNetwork.LocalPlayer.SetCustomProperties(_stats);
+            _playerNumber = playerNumber;
+            Kills = 0;
+            Deaths = 0;
+            Score = 0;
         }
 
         public void AddKill()
         {
+            if (_playerNumber < 0)
+            {
+                return;
+            }
+
             Kills++;
-            _stats[KillsKey] = Kills;
             UpdateStat();
         }
 
         public void AddDeaths()
         {
+            if (_playerNumber < 0)
+            {
+                return;
+            }
+
             Deaths++;
-            _stats[DeathsKey] = Deaths;
             UpdateStat();
         }
 
         private void UpdateStat()
         {
             Score = Kills - Deaths;
-            _stats[ScoreKey] = Score;
-            PhotonNetwork.LocalPlayer.SetCustomProperties(_stats);
-            GameUIManager.Instance.UpdateStats(PhotonNetwork.LocalPlayer.ActorNumber);
+            GameUIManager.Instance.UpdateStats(_playerNumber);
         }
     }
 }

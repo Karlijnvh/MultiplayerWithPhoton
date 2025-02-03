@@ -23,30 +23,31 @@ namespace PV.Multiplayer
         public TextMeshProUGUI logText;
 
         [Tooltip("List of player stat's ui representation.")]
-        public UIStat[] stats;
+        public GameObject uiStatPrefab;
+
+        public Transform uiStatContainer;
 
         // Queue to manage log messages in the UI.
         private Queue<string> _logs = new();
+        public Dictionary<int, UIStat> stats;
+
+        private UIStat _uiStat;
 
         // Track the total player in room
         private int _playerCount = 0;
+        private bool _isLeaving = false;
 
         private void Awake()
         {
             Instance = this;
-
-            // Disabling leaderboard stats on start.
-            foreach(var stat in stats)
-            {
-                stat.Disable();
-            }
+            stats = new();
         }
 
-        public override void OnPlayerEnteredRoom(Player newPlayer)
-        {
-            // Logs the event to the UI about the player who left.
-            LogSpawned(newPlayer.NickName);
-        }
+        //public override void OnPlayerEnteredRoom(Player newPlayer)
+        //{
+        //    // Logs the event to the UI about the player who left.
+        //    LogSpawned(newPlayer.NickName);
+        //}
 
         public override void OnPlayerLeftRoom(Player otherPlayer)
         {
@@ -60,10 +61,25 @@ namespace PV.Multiplayer
             SceneManager.LoadScene(0);
         }
 
+        public override void OnMasterClientSwitched(Player newMasterClient)
+        {
+            // When Master leaves all players also leaves.
+            if (!_isLeaving)
+            {
+                _isLeaving = true;
+                // Initiate leaving the room.
+                PhotonNetwork.LeaveRoom();
+            }
+        }
+
         public void LeaveRoom()
         {
-            // Initiate leaving the room.
-            PhotonNetwork.LeaveRoom();
+            if (!_isLeaving)
+            {
+                _isLeaving = true;
+                // Initiate leaving the room.
+                PhotonNetwork.LeaveRoom();
+            }
         }
 
         /// <summary>
@@ -151,32 +167,21 @@ namespace PV.Multiplayer
 
         public void SetStats(PlayerController player)
         {
-            if (_playerCount >= stats.Length)
+            if (!stats.ContainsKey(player.photonView.Owner.ActorNumber))
             {
-                return;
+                _uiStat = Instantiate(uiStatPrefab, uiStatContainer).GetComponent<UIStat>();
+                stats[player.photonView.Owner.ActorNumber] = _uiStat;
+                stats[player.photonView.Owner.ActorNumber].InitData(player);
             }
-
-            stats[_playerCount].InitData(player);
-            stats[_playerCount].Enable();
-            _playerCount++;
         }
 
         public void UpdateStats(int playerNumber)
         {
-            if (!PhotonNetwork.IsMasterClient)
+            if (stats.Count > 0)
             {
-                return;
-            }
-
-            if (stats.Length > 0)
-            {
-                foreach (var stat in stats)
+                if (stats.ContainsKey(playerNumber))
                 {
-                    if (stat.playerNumber == playerNumber)
-                    {
-                        stat.UpdateData();
-                        break;
-                    }
+                    stats[playerNumber].UpdateData();
                 }
             }
         }
