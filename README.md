@@ -1,6 +1,6 @@
 # 🎮 Multiplayer Game with Photon PUN 2
 
-A Multiplayer game crafted from the ground up using Untiy and Photon PUN 2. This project showcases multiplayer networking features, including synchronized player actions, real-time gameplay mechanics, and dynamic game states. Designed to serve as both a learning resource and a robust foundation for creating multiplayer games, it demonstrates the seamless integration of networking systems with engaging gameplay elements. Whether you're looking to build a competitive shooter or a cooperative experience, this project provides all the essential components to get started.
+A Multiplayer game crafted from the ground up using Unity and Photon PUN 2. This project showcases multiplayer networking features, including synchronized player actions, real-time gameplay mechanics, and dynamic game states. Designed to serve as both a learning resource and a robust foundation for creating multiplayer games, it demonstrates the seamless integration of networking systems with engaging gameplay elements. Whether you're looking to build a competitive shooter or a cooperative experience, this project provides all the essential components to get started.
 
 > Adding extra features -
 > - Character customization.
