@@ -2,12 +2,12 @@
 
 A Multiplayer game crafted from the ground up using Untiy and Photon PUN 2. This project showcases multiplayer networking features, including synchronized player actions, real-time gameplay mechanics, and dynamic game states. Designed to serve as both a learning resource and a robust foundation for creating multiplayer games, it demonstrates the seamless integration of networking systems with engaging gameplay elements. Whether you're looking to build a competitive shooter or a cooperative experience, this project provides all the essential components to get started.
 
-> Note: It is still under development. Adding following features -
-> - Separate Player profile management.
+> Adding extra features -
 > - Character customization.
-> - Room list to join from.
-> - Player will only be able to join a room before the game starts.
-> - And more.
+> - Better Audio system.
+> - Timing system.
+
+> Note: Fixed sized window is used to test multiplayer players in same pc. It is not designed only for specific size, UI can adapt to any size.
 
 ---
 
@@ -19,15 +19,21 @@ A Multiplayer game crafted from the ground up using Untiy and Photon PUN 2. This
 - **Game Manager**: 
   - Spawns players at random points.
   - Tracks and displays player entry and exit events in real time.
+  - Now all players follow the **Master Client** (e.g., transitioning levels, leaving the room, etc.).
 
 ### 📋 UI Systems
-- **UI Manager**:
-  - Allows players to set their names and room names.
-  - Facilitates room joining and creation via buttons.
+- **Menu UI Manager**:
+  - Allows players to set their names.
+  - Facilitates room creation, joining, and player management.
+  - Displays the list of available rooms in the current lobby.
 - **Game UI Manager**:
   - Displays real-time gameplay events through a logging system (e.g., player spawn notifications, kill events).
-  - Includes a live leaderboard showing scores during gameplay.
-  - Displays a summary leaderboard when the game ends.
+- **Deathmatch UI**:
+  - Includes **room list UI** for selecting and joining available matches.
+  - Shows **player list** within a room.
+- **Player List & Ready System**:
+  - Players in a room can see the **player list**.
+  - A **fully synchronized** ready system ensures that the level loads when all players are ready.
 
 ### 🔫 Weapon Systems
 - **Weapon Manager**:
@@ -39,6 +45,15 @@ A Multiplayer game crafted from the ground up using Untiy and Photon PUN 2. This
     - Hit layers and effects.
   - Triggers shoot and hit particle effects visible to all players.
   - Notifies players about inflicted damage and updates stats accordingly.
+
+### 📊 Leaderboard & Stats System
+- **Leaderboard System**:
+  - Shows real-time player rankings.
+  - Highlights the current player in a different color.
+  - Differentiates between positive and negative scores.
+- **Player Stats**:
+  - Tracks **Kills, Deaths, and Score** per player.
+  - Displays stats in the **leaderboard**.
 
 ---
 
@@ -74,7 +89,7 @@ Follow these steps to set up and run the project locally.
    - Movement controls.
    - Shooting mechanics.
    - Real-time score tracking and notifications.
-4. The leaderboard will display scores when the game ends.
+4. **Player Ready System**: The level loads only when all players are ready.
 
 ---
 
@@ -96,18 +111,14 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ---
 
+## 🌟 Acknowledgments
+- **Photon Engine**: For providing an excellent networking framework and good documentation.
+
+---
+
 ## 📋 Third-Party Assets
-
 This project utilizes the following third-party assets:
-
 - **Weapon Model**: A weapon model that is attached to the player. Available free at [Unity Asset Store](https://assetstore.unity.com/packages/3d/props/guns/low-poly-fps-weapons-lite-245929) 
 - **Particles**: Using shoot particle to show at gun point and hit particle to show at hit point. Available free at [Unity Asset Store](https://assetstore.unity.com/packages/vfx/particles/cartoon-fx-remaster-free-109565)
 
 > Note: These assets are for demonstration purposes and are subject to their respective licenses. Ensure you comply with the asset terms when using them in your own projects.
-
-
----
-
-## 🌟 Acknowledgments
-- **Photon Engine**: For providing an excellent networking framework and good documentation.
-
