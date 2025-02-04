@@ -2,11 +2,6 @@
 
 A Multiplayer game crafted from the ground up using Unity and Photon PUN 2. This project showcases multiplayer networking features, including synchronized player actions, real-time gameplay mechanics, and dynamic game states. Designed to serve as both a learning resource and a robust foundation for creating multiplayer games, it demonstrates the seamless integration of networking systems with engaging gameplay elements. Whether you're looking to build a competitive shooter or a cooperative experience, this project provides all the essential components to get started.
 
-> Adding extra features -
-> - Character customization.
-> - Better Audio system.
-> - Timing system.
-
 > Note: Fixed sized window is used to test multiplayer players in same pc. It is not designed only for specific size, UI can adapt to any size.
 
 ---
@@ -28,6 +23,8 @@ A Multiplayer game crafted from the ground up using Unity and Photon PUN 2. This
   - Displays the list of available rooms in the current lobby.
 - **Game UI Manager**:
   - Displays real-time gameplay events through a logging system (e.g., player spawn notifications, kill events).
+  - Displays game timer, which indicates the time remaining until the game over.
+  - Showing leaderboard on game over and then exiting room after some delay.
 - **Deathmatch UI**:
   - Includes **room list UI** for selecting and joining available matches.
   - Shows **player list** within a room.
@@ -74,6 +71,9 @@ Follow these steps to set up and run the project locally.
    - Launch **Unity Hub**.
    - Add the cloned folder to your projects.
    - Open the project in Unity Editor.
+
+     > Be aware that it will have errors related to Photon, since you did not imported the Photon yet.
+   - Import the Photon PUN2 from Asset store or Photon's website to resolve the errors.
 3. Configure Photon:
    - Obtain an App ID from the [Photon Dashboard](https://dashboard.photonengine.com/).
    - Navigate to `Assets > Photon > PhotonUnityNetworking > Resources > PhotonServerSettings`.
