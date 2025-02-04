@@ -38,7 +38,9 @@ namespace PV.Multiplayer
         public Transform roomItemContainer;
         public TMP_InputField roomNameField;
         public TextMeshProUGUI gameTimeText;
+        public TextMeshProUGUI maxPlayersText;
         public Slider gameTimeSlider;
+        public Slider maxPlayersSlider;
 
         [Header("Room")]
         [Tooltip("Container to hold all player items in the room.")]
@@ -349,6 +351,9 @@ namespace PV.Multiplayer
                 _playerProps[READY_KEY] = false;
                 PhotonNetwork.LocalPlayer.SetCustomProperties(_playerProps);
             }
+
+            // Set default max players property for any room.
+            NetworkManager.Instance.SetMaxPlayers(4);
         }
 
         /// <summary>
@@ -487,6 +492,13 @@ namespace PV.Multiplayer
         {
             // Update the game time text when the slider value changes.
             gameTimeText.text = gameTimeSlider.value.ToString();
+        }
+
+        public void OnMaxPlayersChanged()
+        {
+            // Update the max player text when the slider value changes.
+            maxPlayersText.text = maxPlayersSlider.value.ToString();
+            NetworkManager.Instance.SetMaxPlayers((int)maxPlayersSlider.value);
         }
 
         /// <summary>

@@ -18,8 +18,8 @@ namespace PV.Multiplayer
     {
         public static NetworkManager Instance;
 
-        [Tooltip("Maximum players that can join a single room.")]
-        public int maxPlayers = 4;
+        // Maximum players that can join a room.
+        private int _maxPlayers = 4;
 
         [HideInInspector]
         public bool isLeaving = false; // Flag to track if the player is leaving the room.
@@ -43,6 +43,14 @@ namespace PV.Multiplayer
         }
 
         /// <summary>
+        /// Sets the maximum players that can join a room.
+        /// </summary>
+        public void SetMaxPlayers(int maxPlayers)
+        {
+            _maxPlayers = maxPlayers;
+        }
+
+        /// <summary>
         /// Attempts to create and join a room with the given room name.
         /// </summary>
         /// <param name="roomName">The name of the room to create.</param>
@@ -52,7 +60,7 @@ namespace PV.Multiplayer
             MenuUIManager.Instance.ShowFeedback($"Joining Room : {roomName}");
             var roomOptions = new RoomOptions()
             {
-                MaxPlayers = maxPlayers,
+                MaxPlayers = _maxPlayers,
             };
 
             PhotonNetwork.JoinOrCreateRoom(roomName, roomOptions, null);

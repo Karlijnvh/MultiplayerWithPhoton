@@ -259,8 +259,8 @@ MonoBehaviour:
   score: {fileID: 5024361435837111194}
   backgroundImage: {fileID: 3225071118342807533}
   playerColor: {r: 0.27058822, g: 0.8862745, b: 0.33991998, a: 1}
-  positiveColor: {r: 0, g: 0.19607843, b: 1, a: 1}
-  negativeColor: {r: 1, g: 0.019607844, b: 0, a: 1}
+  positiveScoreColor: {r: 0, g: 0.42249778, b: 0.9245283, a: 1}
+  negativeScoreColor: {r: 1, g: 0, b: 0, a: 1}
   playerNumber: -1
 --- !u!1 &6118210297362903692
 GameObject:
