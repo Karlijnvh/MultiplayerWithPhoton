@@ -19,14 +19,14 @@ namespace PV.Multiplayer
 
         // Reference to the PhotonView component for network synchronization.
         internal PhotonView photonView;
-        // Used to store the player stats (eg. kills, deaths, score, etc.).
+        // Used to store the player stats (e.g., kills, deaths, score, etc.).
         internal Stats stats;
 
         // Manages the player's weapon state and actions.
         private WeaponManager _weaponManager;
         // Tracks the name of the last player who dealt damage.
         private PhotonView _lastAttacker;
-        // Tracks the last attacker id.
+        // Tracks the last attacker's ID.
         private int _lastAttackerID;
 
         protected override void Awake()
@@ -85,7 +85,7 @@ namespace PV.Multiplayer
         /// Handles damage taken by the player and updates health and UI.
         /// </summary>
         /// <param name="damage">The amount of damage dealt.</param>
-        /// <param name="attackerName">The name of the player who dealt the damage.</param>
+        /// <param name="attackerID">The ID of the player who dealt the damage.</param>
         [PunRPC]
         public void TakeDamage(int damage, int attackerID)
         {
@@ -110,6 +110,9 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Handles player death, updates stats, and triggers respawning.
+        /// </summary>
         private void Die()
         {
             // Reset health for respawning.
@@ -120,6 +123,7 @@ namespace PV.Multiplayer
                 playerUI.SetHealth(health);
             }
 
+            // Updating leaderboard stats for both the attacker and this player.
             if (_lastAttacker.TryGetComponent(out PlayerController attacker))
             {
                 attacker.stats.AddKill();
@@ -128,7 +132,6 @@ namespace PV.Multiplayer
             {
                 Debug.LogError("Last attacker does not have PlayerController!");
             }
-
             stats.AddDeaths();
 
             // Log the kill in the game UI.
@@ -138,6 +141,9 @@ namespace PV.Multiplayer
         }
     }
 
+    /// <summary>
+    /// Manages player statistics such as kills, deaths, and score.
+    /// </summary>
     [System.Serializable]
     public class Stats
     {
@@ -149,6 +155,7 @@ namespace PV.Multiplayer
         public int Deaths { get; private set; }
         public int Score { get; private set; }
 
+        // The player's unique number (ActorNumber).
         private int _playerNumber = -1;
 
         public Stats(int playerNumber)
@@ -159,6 +166,9 @@ namespace PV.Multiplayer
             Score = 0;
         }
 
+        /// <summary>
+        /// Increments the player's kill count and updates the score.
+        /// </summary>
         public void AddKill()
         {
             if (_playerNumber < 0)
@@ -170,6 +180,9 @@ namespace PV.Multiplayer
             UpdateStat();
         }
 
+        /// <summary>
+        /// Increments the player's death count and updates the score.
+        /// </summary>
         public void AddDeaths()
         {
             if (_playerNumber < 0)
@@ -181,6 +194,9 @@ namespace PV.Multiplayer
             UpdateStat();
         }
 
+        /// <summary>
+        /// Updates the player's score and informs the Game UI Manager.
+        /// </summary>
         private void UpdateStat()
         {
             Score = Kills - Deaths;

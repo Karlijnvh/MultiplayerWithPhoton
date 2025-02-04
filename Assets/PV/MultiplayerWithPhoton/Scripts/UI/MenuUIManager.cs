@@ -9,6 +9,10 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace PV.Multiplayer
 {
+    /// <summary>
+    /// Manages the UI for the main menu, profile, deathmatch, and room functionalities.
+    /// Handles player connection, room creation, and player readiness.
+    /// </summary>
     public class MenuUIManager : MonoBehaviour
     {
         public static MenuUIManager Instance;
@@ -18,7 +22,6 @@ namespace PV.Multiplayer
         public GameObject profileUI;
         public GameObject deathmatchUI;
         public GameObject roomUI;
-        public GameObject background;
         public TextMeshProUGUI feedbackMessage;
 
         [Header("Profile")]
@@ -27,32 +30,41 @@ namespace PV.Multiplayer
         [Header("Deathmatch")]
         public GameObject roomListPanel;
         public GameObject createRoomPanel;
+        [Tooltip("Object containing the list of rooms.")]
         public GameObject roomList;
         public GameObject noRoomMessage;
         public GameObject roomItemPrefab;
+        [Tooltip("Container to hold all room items.")]
         public Transform roomItemContainer;
         public TMP_InputField roomNameField;
+        public TextMeshProUGUI gameTimeText;
+        public Slider gameTimeSlider;
 
         [Header("Room")]
+        [Tooltip("Container to hold all player items in the room.")]
         public Transform playerItemContainer;
         public GameObject playerItemPrefab;
         public Image readyButton;
+        [Tooltip("Color of the ready button when the player is ready.")]
         public Color readyColor = Color.white;
+        [Tooltip("Color of the ready button when the player is not ready.")]
         public Color notReadyColor = Color.white;
 
+        // Dictionaries to store room information, UI items and player UI items.
         private Dictionary<string, RoomInfo> _roomInfos = new();
         private Dictionary<string, RoomItem> _roomItems = new();
         private Dictionary<int, PlayerItem> _playerItems = new();
 
         private int _localID = -1;
-        private readonly float _toggleDelay = 1f; // Time to wait before toggling the ready status
-        private float _lastToggleTime = 0f; // The last time we toggle the ready status
+        private readonly float _toggleDelay = 1f; // Time to wait before toggling the ready status.
+        private float _lastToggleTime = 0f; // The last time we toggle the ready status.
 
         private const string DEFAULT_NAME = "Noobie";
-        public const string READY_KEY = "IsReady";
+        private const string READY_KEY = "IsReady"; // Key for ready property of player.
+        private const string GAME_TIME = "GameTime"; // Key for game time property of room.
 
-        private Hashtable _playerProps;
-        private readonly WaitForSeconds _waitForCountdown = new(1);
+        private Hashtable _playerProps; // Cached player custom properties.
+        private readonly WaitForSeconds _waitForCountdown = new(1); // Delay for countdown.
         private bool _canLoadLevel = false;
 
         private void Awake()
@@ -68,20 +80,26 @@ namespace PV.Multiplayer
                 playerNameField.text = PlayerPrefs.GetString("PlayerName");
             }
 
+            // Initial feedback message
             feedbackMessage.text = "Connecting...";
             feedbackMessage.gameObject.SetActive(true);
 
+            // Hide all UI panels initially
             mainUI.SetActive(false);
             profileUI.SetActive(false);
             deathmatchUI.SetActive(false);
             roomUI.SetActive(false);
 
+            // Set the initial color of the ready button
             readyButton.color = notReadyColor;
 
             CheckRoomList();
             SavePlayerName(); // Insures that there will be a player name.
         }
 
+        /// <summary>
+        /// Saves the player's name to Photon and PlayerPrefs.
+        /// </summary>
         public void SavePlayerName()
         {
             if (!string.IsNullOrEmpty(playerNameField.text))
@@ -97,18 +115,27 @@ namespace PV.Multiplayer
             PlayerPrefs.SetString("PlayerName", PhotonNetwork.NickName);
         }
 
+        /// <summary>
+        /// Opens the profile UI to allow the player manage profile.
+        /// </summary>
         public void OpenProfile()
         {
             mainUI.SetActive(false);
             profileUI.SetActive(true);
         }
 
+        /// <summary>
+        /// Closes the profile UI and returns to the main UI.
+        /// </summary>
         public void CloseProfile()
         {
             profileUI.SetActive(false);
             mainUI.SetActive(true);
         }
 
+        /// <summary>
+        /// Opens the deathmatch UI where the player can interact with available rooms.
+        /// </summary>
         public void OpenDeathmatch()
         {
             mainUI.SetActive(false);
@@ -118,6 +145,9 @@ namespace PV.Multiplayer
             deathmatchUI.SetActive(true);
         }
 
+        /// <summary>
+        /// Closes the deathmatch UI and returns to the main UI.
+        /// </summary>
         public void CloseDeathmatch()
         {
             deathmatchUI.SetActive(false);
@@ -127,6 +157,9 @@ namespace PV.Multiplayer
             mainUI.SetActive(true);
         }
 
+        /// <summary>
+        /// Creates a new room if the room name is valid.
+        /// </summary>
         public void CreateRoom()
         {
             if (!string.IsNullOrEmpty(roomNameField.text))
@@ -146,11 +179,14 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Updates the room list UI with the latest room information.
+        /// </summary>
         public void UpdateRoomList(List<RoomInfo> roomList)
         {
             for (int i = 0; i < roomList.Count; i++)
             {
-                // If cached data is empty.
+                // If no cached rooms exist, add them.
                 if (_roomInfos.Count <= 0)
                 {
                     // If room is being removed then continue to next room.
@@ -160,7 +196,7 @@ namespace PV.Multiplayer
                 }
                 else
                 {
-                    // If room is being removed then also remove from cached data.
+                    // Handle room removal or update.
                     if (roomList[i].RemovedFromList)
                     {
                         if (_roomInfos.ContainsKey(roomList[i].Name))
@@ -168,19 +204,19 @@ namespace PV.Multiplayer
                             _roomInfos.Remove(roomList[i].Name);
 
                             _roomItems.Remove(roomList[i].Name, out RoomItem roomItem);
-                            Destroy(roomItem.gameObject);
+                            Destroy(roomItem.gameObject); // Destroy the room item UI
                         }
                     }
-                    // If room is new, eg. it does not exist in cached data, then add room.
                     else if (!_roomInfos.ContainsKey(roomList[i].Name))
                     {
                         AddRoom(roomList[i]);
                     }
-                    // If room exist in cached data then update it.
                     else if(_roomInfos.ContainsKey(roomList[i].Name))
                     {
+                        // Update existing room info
                         _roomInfos[roomList[i].Name] = roomList[i];
 
+                        // Disable the room item if full or closed, else enable it.
                         if (!roomList[i].IsOpen || roomList[i].PlayerCount >= roomList[i].MaxPlayers)
                         {
                             _roomItems[roomList[i].Name].Disable();
@@ -197,6 +233,9 @@ namespace PV.Multiplayer
             CheckRoomList();
         }
 
+        /// <summary>
+        /// Checks if any rooms are available and shows the appropriate message.
+        /// </summary>
         private void CheckRoomList()
         {
             bool hasRooms = _roomItems.Count > 0;
@@ -204,6 +243,9 @@ namespace PV.Multiplayer
             noRoomMessage.SetActive(!hasRooms);
         }
 
+        /// <summary>
+        /// Adds a new room to the room list UI.
+        /// </summary>
         private void AddRoom(RoomInfo room)
         {
             RoomItem roomItem = Instantiate(roomItemPrefab, roomItemContainer).GetComponent<RoomItem>();
@@ -217,6 +259,9 @@ namespace PV.Multiplayer
             _roomItems[room.Name] = roomItem;
         }
 
+        /// <summary>
+        /// Joins the specified room if it's available and not full.
+        /// </summary>
         private void JoinRoom(string roomName)
         {
             if (_roomInfos.ContainsKey(roomName))
@@ -249,6 +294,9 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Displays a feedback message while performing an action.
+        /// </summary>
         public void ShowFeedback(string message)
         {
             mainUI.SetActive(false);
@@ -260,6 +308,9 @@ namespace PV.Multiplayer
             feedbackMessage.gameObject.SetActive(true);
         }
 
+        /// <summary>
+        /// Handles different actions based on various network events.
+        /// </summary>
         public void OnNetworkEvent(NetworkEvent networkEvent)
         {
             switch (networkEvent)
@@ -275,31 +326,34 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Actions to take when the player joins a lobby.
+        /// </summary>
         public void OnJoinedLobby()
         {
             feedbackMessage.gameObject.SetActive(false);
             mainUI.SetActive(true);
 
-            // If it is not the first time joining lobby, eg. When player leaves a room.
+            // Reset player information if not the first time joining the lobby, e.g., When player leaves a room.
             if (_localID != -1)
             {
-                // Set local id to -1 on joined lobby. Because the player is not in any room.
                 _localID = -1;
 
-                // Reset players list. It also works when the player leaves the room.
                 foreach (PlayerItem item in _playerItems.Values)
                 {
                     Destroy(item.gameObject);
                 }
                 _playerItems.Clear();
 
-                // Reset ready status.
                 readyButton.color = notReadyColor;
                 _playerProps[READY_KEY] = false;
                 PhotonNetwork.LocalPlayer.SetCustomProperties(_playerProps);
             }
         }
 
+        /// <summary>
+        /// Actions to take when the player joins a room.
+        /// </summary>
         public void OnJoinedRoom()
         {
             // Disable active UI elements.
@@ -314,17 +368,24 @@ namespace PV.Multiplayer
                 }
             }
 
-            // Cache local player's ID.
+            // Cache local player's ID and set initial properties.
             _localID = PhotonNetwork.LocalPlayer.ActorNumber;
-
-            // Setting local player properties.
             _playerProps = new() { { READY_KEY, false } };
             PhotonNetwork.LocalPlayer.SetCustomProperties(_playerProps);
 
-            // Enable Room UI.
+            if (PhotonNetwork.IsMasterClient)
+            {
+                // Store game time for current room.
+                PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable() { { GAME_TIME, (int)gameTimeSlider.value } });
+            }
+
+            // Enable the room UI.
             roomUI.SetActive(true);
         }
 
+        /// <summary>
+        /// Handles actions when the room is created.
+        /// </summary>
         public void OnCreatedRoom()
         {
             // Clear room info if the player create / host a room.
@@ -348,6 +409,9 @@ namespace PV.Multiplayer
             PhotonNetwork.LocalPlayer.SetCustomProperties(_playerProps);
         }
 
+        /// <summary>
+        /// Handles actions when a player enters the room.
+        /// </summary>
         public void OnPlayerEnter(int actorNumber)
         {
             if (!_playerItems.ContainsKey(actorNumber))
@@ -356,6 +420,9 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Handles actions when a player leaves the room.
+        /// </summary>
         public void OnPlayerLeft(Player player)
         {
             if (_playerItems.ContainsKey(player.ActorNumber))
@@ -367,6 +434,9 @@ namespace PV.Multiplayer
             CheckAllPlayersReady();
         }
 
+        /// <summary>
+        /// Checks if all players in the room are ready. If all players are ready, the game can start.
+        /// </summary>
         private void CheckAllPlayersReady()
         {
             foreach (Player p in PhotonNetwork.PlayerList)
@@ -409,13 +479,29 @@ namespace PV.Multiplayer
             }
             else if (PhotonNetwork.IsMasterClient)
             {
-                // Close the room, so no more players can join.
-                PhotonNetwork.CurrentRoom.IsOpen = false;
-                // Load Game Scene for all players.
-                PhotonNetwork.LoadLevel(1);
+                StartGame();
             }
         }
 
+        public void OnGameTimeChanged()
+        {
+            // Update the game time text when the slider value changes.
+            gameTimeText.text = gameTimeSlider.value.ToString();
+        }
+
+        /// <summary>
+        /// Starts the game by locking the room and loading the game scene.
+        /// </summary>
+        private void StartGame()
+        {
+            // Close the room so no more players can join and load the game scene.
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+            PhotonNetwork.LoadLevel(1);
+        }
+
+        /// <summary>
+        /// Coroutine to delay level loading and show a countdown.
+        /// </summary>
         IEnumerator LoadLevelDelay()
         {
             ShowFeedback("Loading Level In 3...");
@@ -429,9 +515,13 @@ namespace PV.Multiplayer
 
             ShowFeedback("Loading Level...");
             _canLoadLevel = true;
+            // Ensure players are ready before loading
             CheckAllPlayersReady();
         }
 
+        /// <summary>
+        /// Handles updates to the player’s ready status when their properties change.
+        /// </summary>
         public void OnPlayerPropsUpdate(int actorNumber, Hashtable props)
         {
             if (props.ContainsKey(READY_KEY))
@@ -468,6 +558,9 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Sets the local player's ready status and updates their UI.
+        /// </summary>
         private void SetLocalReadyStatus(bool isReady)
         {
             _playerProps[READY_KEY] = isReady;
@@ -477,6 +570,9 @@ namespace PV.Multiplayer
             _playerItems[_localID].SetStatus(isReady);
         }
 
+        /// <summary>
+        /// Creates a new UI element to display the player in the players list of current room.
+        /// </summary>
         private void CreatePlayerItem(int actorNumber)
         {
             PlayerItem playerItem = Instantiate(playerItemPrefab, playerItemContainer).GetComponent<PlayerItem>();
@@ -491,23 +587,37 @@ namespace PV.Multiplayer
             _playerItems[actorNumber] = playerItem;
         }
 
+        /// <summary>
+        /// Removes the player’s UI item from the players list of current room.
+        /// </summary>
         private void RemovePlayerItem(int actorNumber)
         {
             _playerItems.Remove(actorNumber, out PlayerItem item);
             Destroy(item.gameObject);
         }
 
+        /// <summary>
+        /// Handles errors by displaying the appropriate UI.
+        /// </summary>
         public void OnError()
         {
-            // Disable all UI elements and enable only main UI
-            feedbackMessage.gameObject.SetActive(false);
-            profileUI.SetActive(false);
-            roomUI.SetActive(false);
-            deathmatchUI.SetActive(false);
+            // Checking if gameobjects exist, since this function also gets called when disconnected.
+            // Which could also be triggered on application close. In that case gameobjects do not exist anymore.
+            if (feedbackMessage != null)
+            {
+                // Disable all UI elements and enable only main UI
+                feedbackMessage.gameObject.SetActive(false);
+                profileUI.SetActive(false);
+                roomUI.SetActive(false);
+                deathmatchUI.SetActive(false);
 
-            mainUI.SetActive(true);
+                mainUI.SetActive(true);
+            }
         }
 
+        /// <summary>
+        /// Quits the application.
+        /// </summary>
         public void Quit()
         {
             Application.Quit();
