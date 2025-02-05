@@ -8,9 +8,6 @@ namespace PV.Multiplayer
     {
         public static GameManager Instance { get; private set; }
 
-        [Tooltip("Locks the cursor to the game window when enabled.")]
-        public bool lockCursor;
-
         [Tooltip("The prefab used for spawning players.")]
         public GameObject playerPrefab;
 
@@ -43,12 +40,6 @@ namespace PV.Multiplayer
                 { 
                     SpawnPlayer();
                 }
-            }
-
-            if (lockCursor)
-            {
-                // Lock the cursor to the game window.
-                Cursor.lockState = CursorLockMode.Confined;
             }
         }
 

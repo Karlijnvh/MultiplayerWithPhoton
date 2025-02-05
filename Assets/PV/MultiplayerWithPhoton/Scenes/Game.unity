@@ -3022,7 +3022,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 15:00
+  m_text: 09:36
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3249,7 +3249,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1211214310
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6055,8 +6055,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 290337501427617582}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.19338596, y: 0.5366696, z: -0.1279282, w: -0.81130886}
-  m_LocalPosition: {x: -1.52, y: 1.5922463, z: -4.51}
+  m_LocalRotation: {x: -0.017828641, y: -0.6098702, z: 0.0137223955, w: -0.7921819}
+  m_LocalPosition: {x: -3.8115637, y: 1.5553744, z: -7.777169}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

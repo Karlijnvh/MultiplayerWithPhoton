@@ -22,6 +22,7 @@ namespace PV.Multiplayer
         public GameObject profileUI;
         public GameObject deathmatchUI;
         public GameObject roomUI;
+        public GameObject settingsUI;
         public TextMeshProUGUI feedbackMessage;
 
         [Header("Profile")]
@@ -41,6 +42,7 @@ namespace PV.Multiplayer
         public TextMeshProUGUI maxPlayersText;
         public Slider gameTimeSlider;
         public Slider maxPlayersSlider;
+        public Toggle lockCursor;
 
         [Header("Room")]
         [Tooltip("Container to hold all player items in the room.")]
@@ -64,6 +66,7 @@ namespace PV.Multiplayer
         private const string DEFAULT_NAME = "Noobie";
         private const string READY_KEY = "IsReady"; // Key for ready property of player.
         private const string GAME_TIME = "GameTime"; // Key for game time property of room.
+        private const string LOCK_CURSOR = "LockCursor"; // Key for lock cursor during game.
 
         private Hashtable _playerProps; // Cached player custom properties.
         private readonly WaitForSeconds _waitForCountdown = new(1); // Delay for countdown.
@@ -91,9 +94,30 @@ namespace PV.Multiplayer
             profileUI.SetActive(false);
             deathmatchUI.SetActive(false);
             roomUI.SetActive(false);
+            settingsUI.SetActive(false);
 
             // Set the initial color of the ready button
             readyButton.color = notReadyColor;
+
+            // Handle Cursor's lock state.
+            if (PlayerPrefs.HasKey(LOCK_CURSOR))
+            {
+                if (PlayerPrefs.GetInt(LOCK_CURSOR) == 1)
+                {
+                    lockCursor.isOn = true;
+                    Cursor.lockState = CursorLockMode.Confined;
+                }
+                else
+                {
+                    lockCursor.isOn = false;
+                }
+            }
+            else
+            {
+                lockCursor.isOn = true;
+                Cursor.lockState = CursorLockMode.Confined;
+                PlayerPrefs.SetInt(LOCK_CURSOR, 1);
+            }
 
             CheckRoomList();
             SavePlayerName(); // Insures that there will be a player name.
@@ -157,6 +181,31 @@ namespace PV.Multiplayer
             createRoomPanel.SetActive(false);
 
             mainUI.SetActive(true);
+        }
+
+        /// <summary>
+        /// Opens the settings UI to allow the player manage settings.
+        /// </summary>
+        public void OpenSettings()
+        {
+            mainUI.SetActive(false);
+            settingsUI.SetActive(true);
+        }
+
+        /// <summary>
+        /// Closes the settings UI and returns to the main UI.
+        /// </summary>
+        public void CloseSettings()
+        {
+            settingsUI.SetActive(false);
+            mainUI.SetActive(true);
+        }
+
+        public void OnLockCursorChanged(bool lockCursor)
+        {
+            PlayerPrefs.SetInt(LOCK_CURSOR, lockCursor ? 1 : 0);
+
+            Cursor.lockState = lockCursor ? CursorLockMode.Confined : CursorLockMode.None;
         }
 
         /// <summary>
