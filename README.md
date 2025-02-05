@@ -54,6 +54,39 @@ A Multiplayer game crafted from the ground up using Unity and Photon PUN 2. This
 
 ---
 
+## 📸 Screenshots
+
+![Home](https://static.wixstatic.com/media/27da3d_cf75db43ab5e4a578e061ae5eebdfe5a~mv2.png)
+|:--:| 
+| *Home* |
+
+![Profile](https://static.wixstatic.com/media/27da3d_0311f839c3cc43c2903db5c0034d7644~mv2.png)
+|:--:| 
+| *Profile Management* |
+
+![Deathmatch_EmptyRoomList](https://static.wixstatic.com/media/27da3d_ad4424667b054079a320b8834057a3ed~mv2.png)
+|:--:| 
+| *Deathmatch - When there is no available room. Click create to create room.* |
+
+![Deathmatch_RoomList](https://static.wixstatic.com/media/27da3d_127ae79de5e14321bf04fb1698e0754a~mv2.png)
+|:--:| 
+| *Deathmatch - With available rooms. Full rooms or rooms where game has started are disabled.* |
+
+![Deathmatch_CreateRoom](https://static.wixstatic.com/media/27da3d_c712064d7d5f4368a7fafac4732711c3~mv2.png)
+|:--:| 
+| *Deathmatch - Create room panel.* |
+
+![Gameplayer_1](https://static.wixstatic.com/media/27da3d_903729633b7b4ee18f69a56b9fa703b3~mv2.png)
+|:--:| 
+| *Gameplayer scene 1* |
+
+![Gameplayer_2](https://static.wixstatic.com/media/27da3d_9add61329991473eb9b7cb66a35b9a6c~mv2.png)
+|:--:| 
+| *Gameplayer scene 2* |
+
+
+---
+
 ## 🚀 Getting Started
 
 Follow these steps to set up and run the project locally.
