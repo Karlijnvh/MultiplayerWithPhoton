@@ -28,6 +28,8 @@ namespace PV.Multiplayer
         private PhotonView _lastAttacker;
         // Tracks the last attacker's ID.
         private int _lastAttackerID;
+        // Tracks the last aiming input.
+        private bool _wasAiming;
 
         protected override void Awake()
         {
@@ -40,6 +42,11 @@ namespace PV.Multiplayer
             if (playerUI == null)
             {
                 playerUI = GetComponentInChildren<PlayerUI>(true);
+            }
+
+            if (playerUI != null)
+            {
+                playerUI.EnableReticle(false);
             }
 
             // Disable components if this instance does not belong to the local player.
@@ -74,8 +81,9 @@ namespace PV.Multiplayer
                 _weaponManager.DoUpdate();
             }
 
-            if (playerUI != null)
+            if (playerUI != null && _wasAiming != Input.isAiming)
             {
+                _wasAiming = Input.isAiming;
                 // Update the reticle state based on aiming input.
                 playerUI.EnableReticle(Input.isAiming);
             }

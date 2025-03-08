@@ -119,6 +119,7 @@ namespace PV.Multiplayer
                     _isGameOver = true;
                     _timeRemaining = exitTime;
 
+                    gameTimer.text = "00:00";
                     closeButton.SetActive(false);
                     leavingMessage.SetActive(true);
                     leaderboardUI.SetActive(true);
