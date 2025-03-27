@@ -53,6 +53,7 @@ namespace PV.Multiplayer
         /// <summary>
         /// Attempts to create and join a room with the given room name.
         /// </summary>
+        /// <param name="roomName">The name of the room to create.</param>
         public void CreateRoom(string roomName)
         {
             // Notify listeners about room joining attempt.
@@ -68,6 +69,7 @@ namespace PV.Multiplayer
         /// <summary>
         /// Attempts to join an existing room with the specified room name.
         /// </summary>
+        /// <param name="roomName">The name of the room to join.</param>
         public void JoinRoom(string roomName)
         {
             PhotonNetwork.JoinRoom(roomName);
@@ -102,33 +104,22 @@ namespace PV.Multiplayer
             MenuUIManager.Instance.OnNetworkEvent(NetworkEvent.JoinedRoom);
         }
 
-        // Removed 'override' keywords because the base class in this Photon PUN 2 version doesn't declare these as virtual.
-        public void OnPlayerEnteredRoom(Player newPlayer)
+        public override void OnPlayerEnteredRoom(Player newPlayer)
         {
             // Notify listeners about the new player entering.
             MenuUIManager.Instance.OnPlayerEnter(newPlayer.ActorNumber);
         }
 
-        public void OnPlayerLeftRoom(Player otherPlayer)
+        public override void OnPlayerLeftRoom(Player otherPlayer)
         {
             // Notify listeners about the player leaving.
             MenuUIManager.Instance.OnPlayerLeft(otherPlayer);
         }
 
-        public void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             // Notify listeners about the updated properties of the player.
             MenuUIManager.Instance.OnPlayerPropsUpdate(targetPlayer.ActorNumber, changedProps);
-        }
-
-        public void OnMasterClientSwitched(Player newMasterClient)
-        {
-            // Leave the room when the master client is switched.
-            if (!isLeaving)
-            {
-                isLeaving = true;
-                PhotonNetwork.LeaveRoom();
-            }
         }
 
         public override void OnRoomListUpdate(List<RoomInfo> roomList)
@@ -143,12 +134,21 @@ namespace PV.Multiplayer
             MenuUIManager.Instance.OnNetworkEvent(NetworkEvent.CreatedRoom);
         }
 
+        public override void OnMasterClientSwitched(Player newMasterClient)
+        {
+            // Leave the room when the master client is switched.
+            if (!isLeaving)
+            {
+                isLeaving = true;
+                PhotonNetwork.LeaveRoom();
+            }
+        }
+
         public override void OnJoinRoomFailed(short returnCode, string message)
         {
             Debug.LogError($"Join Room Failed with return code {returnCode} and \nMessage: {message}");
             // Notify listeners about the failure.
             MenuUIManager.Instance.OnError();
         }
-
     }
 }

@@ -75,5 +75,6 @@ namespace PV.Multiplayer
             player.transform.SetPositionAndRotation(_spawnPoint.position, _spawnPoint.rotation);
             player.gameObject.SetActive(true);
         }
+                // Deze methode wordt aangeroepen wanneer de game gestart moet worden.
     }
 }
