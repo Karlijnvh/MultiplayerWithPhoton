@@ -565,23 +565,27 @@ namespace PV.Multiplayer
         /// </summary>
         IEnumerator LoadLevelDelay()
         {
+            Debug.Log("Countdown starting...");
             ShowFeedback("Loading Level In 3...");
             yield return _waitForCountdown;
 
+            Debug.Log("Countdown at 2...");
             ShowFeedback("Loading Level In 2...");
             yield return _waitForCountdown;
 
+            Debug.Log("Countdown at 1...");
             ShowFeedback("Loading Level In 1...");
             yield return _waitForCountdown;
 
+            Debug.Log("Loading Level...");
             ShowFeedback("Loading Level...");
             _canLoadLevel = true;
-            // Ensure players are ready before loading
+            // Check again to ensure all players are still ready
             CheckAllPlayersReady();
         }
 
         /// <summary>
-        /// Handles updates to the player’s ready status when their properties change.
+        /// Handles updates to the playerï¿½s ready status when their properties change.
         /// </summary>
         public void OnPlayerPropsUpdate(int actorNumber, Hashtable props)
         {
@@ -609,15 +613,15 @@ namespace PV.Multiplayer
 
             _lastToggleTime = Time.time;
 
-            if (_playerProps.ContainsKey(READY_KEY))
-            {
-                SetLocalReadyStatus(!(bool)_playerProps[READY_KEY]);
-            }
-            else
-            {
-                SetLocalReadyStatus(false);
-            }
+            bool currentStatus = _playerProps.ContainsKey(READY_KEY) ? (bool)_playerProps[READY_KEY] : false;
+            SetLocalReadyStatus(!currentStatus);
+            
+            // Ensure we check if all players are ready immediately
+            CheckAllPlayersReady();
         }
+
+
+        
 
         /// <summary>
         /// Sets the local player's ready status and updates their UI.
@@ -649,7 +653,7 @@ namespace PV.Multiplayer
         }
 
         /// <summary>
-        /// Removes the player’s UI item from the players list of current room.
+        /// Removes the playerï¿½s UI item from the players list of current room.
         /// </summary>
         private void RemovePlayerItem(int actorNumber)
         {

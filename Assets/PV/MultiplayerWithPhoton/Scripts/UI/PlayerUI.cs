@@ -1,32 +1,49 @@
-using TMPro;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using TMPro;
 
 namespace PV.Multiplayer
 {
+    /// <summary>
+    /// Handles the player's UI elements including health bar updates and reticle control.
+    /// </summary>
     public class PlayerUI : MonoBehaviour
     {
-        [Tooltip("UI slider to visually display the player's health.")]
-        [SerializeField] private Slider healthSlider;
+        [Header("Health Bar Settings")]
+        [Tooltip("Slider representing the player's health.")]
+        public Slider slider;
+        [Tooltip("Gradient used to color the health bar.")]
+        public Gradient gradient;
+        [Tooltip("Image component of the health bar fill.")]
+        public Image fill;
 
-        [Tooltip("Text element to display the player's health as a numeric value.")]
-        [SerializeField] private TextMeshProUGUI healthText;
-
+        [Header("Reticle Settings")]
         [Tooltip("The reticle GameObject for aiming visuals.")]
         [SerializeField] private GameObject reticle;
         
-        // Delay duration for enabling/disabling the reticle.
+        // A small delay before enabling/disabling the reticle.
         private readonly WaitForSeconds waitSeconds = new(0.15f);
 
         /// <summary>
-        /// Updates the health UI elements to reflect the current health value.
+        /// Sets the maximum health value for the slider and initializes the color.
         /// </summary>
-        /// <param name="health">The current health value of the player.</param>
+        /// <param name="health">The maximum health value.</param>
+        public void SetMaxHealth(int health)
+        {
+            slider.maxValue = health;
+            slider.value = health;
+            fill.color = gradient.Evaluate(1f);
+        }
+
+        /// <summary>
+        /// Updates the health value and refreshes the health bar color.
+        /// </summary>
+        /// <param name="health">The current health value.</param>
         public void SetHealth(int health)
         {
-            healthSlider.value = health;
-            healthText.text = health.ToString();
+            slider.value = health;
+            fill.color = gradient.Evaluate(slider.normalizedValue);
         }
 
         /// <summary>
@@ -38,7 +55,10 @@ namespace PV.Multiplayer
             StartCoroutine(SetReticle(enable));
         }
 
-        IEnumerator SetReticle(bool enable)
+        /// <summary>
+        /// Coroutine to control the reticle's active state after a brief delay.
+        /// </summary>
+        private IEnumerator SetReticle(bool enable)
         {
             yield return waitSeconds;
             reticle.SetActive(enable);

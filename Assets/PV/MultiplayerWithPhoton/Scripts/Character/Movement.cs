@@ -97,7 +97,7 @@ namespace PV.Multiplayer
             _moveDirection.Normalize();
 
             // Smoothly adjust the player's speed toward the target speed.
-            _currentMoveVelocity = _rigid.velocity;
+            _currentMoveVelocity = _rigid.linearVelocity;
             _currentMoveVelocity.y = 0;
             _currentMoveSpeed = _currentMoveVelocity.magnitude;
 
@@ -110,7 +110,7 @@ namespace PV.Multiplayer
             _moveDirection *= _moveSpeed;
 
             // Apply the calculated movement velocity to the Rigidbody.
-            _rigid.velocity = _moveDirection;
+            _rigid.linearVelocity = _moveDirection;
         }
 
         private void HandleRotation()
@@ -158,13 +158,13 @@ namespace PV.Multiplayer
                     _verticalVelocity.y = _vertVel;
 
                     // Apply jump velocity to the Rigidbody.
-                    _rigid.velocity = _verticalVelocity;
+                    _rigid.linearVelocity = _verticalVelocity;
                 }
             }
             else
             {
                 // Set current velocity.
-                _verticalVelocity = _rigid.velocity;
+                _verticalVelocity = _rigid.linearVelocity;
 
                 // Gradually increase gravity up to a limit.
                 if (_vertVel > -50)
@@ -174,7 +174,7 @@ namespace PV.Multiplayer
 
                 // Apply vertical velocity with gravity.
                 _verticalVelocity.y = _vertVel;
-                _rigid.velocity = _verticalVelocity;
+                _rigid.linearVelocity = _verticalVelocity;
             }
         }
     }

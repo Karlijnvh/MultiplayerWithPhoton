@@ -42,7 +42,7 @@ namespace PV.Multiplayer
                 transform.SetPositionAndRotation(_desiredPosition, _desiredRotation);
                 
                 // Optionally, you can also update the Rigidbody's velocity if needed:
-                _rb.velocity = Vector3.Lerp(_rb.velocity, _networkVelocity, Time.fixedDeltaTime * positionLerpRate);
+                _rb.linearVelocity = Vector3.Lerp(_rb.linearVelocity, _networkVelocity, Time.fixedDeltaTime * positionLerpRate);
             }
         }
 
@@ -53,7 +53,7 @@ namespace PV.Multiplayer
                 // Local player: send current transform and velocity
                 stream.SendNext(transform.position);
                 stream.SendNext(transform.rotation);
-                stream.SendNext(_rb.velocity);
+                stream.SendNext(_rb.linearVelocity);
             }
             else
             {

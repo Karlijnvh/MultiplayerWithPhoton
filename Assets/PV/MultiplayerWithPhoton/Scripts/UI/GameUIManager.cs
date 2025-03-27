@@ -73,18 +73,18 @@ namespace PV.Multiplayer
         private void Start()
         {
             _stats = new();
-            // Hide leaderboard UI and leaving message at start
+            // Hide leaderboard UI and leaving message at start.
             leaderboardUI.SetActive(false);
             leavingMessage.SetActive(false);
 
-            // Check if game time is set in room properties
+            // Check if game time is set in room properties.
             if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(GAME_TIME))
             {
                 int time = (int)PhotonNetwork.CurrentRoom.CustomProperties[GAME_TIME];
                 gameOverTime = time < 1 || time > 15 ? gameOverTime : time;
             }
 
-            // Converting minutes to seconds for timer.
+            // Convert minutes to seconds for timer.
             _timeRemaining = gameOverTime * 60;
         }
 
@@ -106,7 +106,7 @@ namespace PV.Multiplayer
                 gameTimer.text = $"{Mathf.FloorToInt(_timeRemaining / 60):d2}:{Mathf.CeilToInt(_timeRemaining % 60):d2}";
             }
 
-            // Handle game over and exit countdown
+            // Handle game over and exit countdown.
             if (_timeRemaining < 0)
             {
                 if (_isGameOver)
@@ -127,25 +127,25 @@ namespace PV.Multiplayer
             }
         }
 
-        public override void OnPlayerLeftRoom(Player otherPlayer)
+        // Removed 'override' keywords because the base class in your Photon version doesn't declare these as virtual.
+        public void OnPlayerLeftRoom(Player otherPlayer)
         {
             // Logs the event to the UI about the player who left.
             LogLeft(otherPlayer.NickName);
         }
 
-        public override void OnLeftRoom()
+        public void OnLeftRoom()
         {
             // Return to the main menu when the local player leaves the room.
             SceneManager.LoadScene(0);
         }
 
-        public override void OnMasterClientSwitched(Player newMasterClient)
+        public void OnMasterClientSwitched(Player newMasterClient)
         {
-            // When Master leaves all players also leaves.
+            // When Master leaves all players also leave.
             if (!_isLeaving)
             {
                 _isLeaving = true;
-                // Initiate leaving the room.
                 PhotonNetwork.LeaveRoom(false);
             }
         }
@@ -155,7 +155,6 @@ namespace PV.Multiplayer
             if (!_isLeaving)
             {
                 _isLeaving = true;
-                // Initiate leaving the room.
                 PhotonNetwork.LeaveRoom(false);
             }
         }
@@ -262,12 +261,9 @@ namespace PV.Multiplayer
         /// <param name="playerNumber">The Player's unique number.</param>
         public void UpdateStats(int playerNumber)
         {
-            if (_stats.Count > 0)
+            if (_stats.Count > 0 && _stats.ContainsKey(playerNumber))
             {
-                if (_stats.ContainsKey(playerNumber))
-                {
-                    _stats[playerNumber].UpdateData();
-                }
+                _stats[playerNumber].UpdateData();
             }
         }
     }
