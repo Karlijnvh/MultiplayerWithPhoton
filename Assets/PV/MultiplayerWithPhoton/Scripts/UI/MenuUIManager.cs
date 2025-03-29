@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
-using UnityEngine.SceneManagement;
 
 namespace PV.Multiplayer
 {
@@ -80,22 +79,27 @@ namespace PV.Multiplayer
 
         private void Start()
         {
+            // Laad spelernaam uit PlayerPrefs als die bestaat.
             if (PlayerPrefs.HasKey("PlayerName"))
             {
                 playerNameField.text = PlayerPrefs.GetString("PlayerName");
             }
 
+            // Initiële feedback
             feedbackMessage.text = "Connecting...";
             feedbackMessage.gameObject.SetActive(true);
 
+            // Verberg alle UI-panelen
             mainUI.SetActive(false);
             profileUI.SetActive(false);
             deathmatchUI.SetActive(false);
             roomUI.SetActive(false);
             settingsUI.SetActive(false);
 
+            // Zet de ready-knop in de beginstatus.
             readyButton.color = notReadyColor;
 
+            // Beheer de cursor-lock op basis van PlayerPrefs.
             if (PlayerPrefs.HasKey(LOCK_CURSOR))
             {
                 if (PlayerPrefs.GetInt(LOCK_CURSOR) == 1)
@@ -117,9 +121,12 @@ namespace PV.Multiplayer
             }
 
             CheckRoomList();
-            SavePlayerName();
+            SavePlayerName(); // Zorgt ervoor dat er altijd een spelernaam is.
         }
 
+        /// <summary>
+        /// Slaat de spelernaam op in Photon en PlayerPrefs.
+        /// </summary>
         public void SavePlayerName()
         {
             if (!string.IsNullOrEmpty(playerNameField.text))
@@ -131,6 +138,7 @@ namespace PV.Multiplayer
                 PhotonNetwork.NickName = DEFAULT_NAME;
                 playerNameField.text = DEFAULT_NAME;
             }
+
             PlayerPrefs.SetString("PlayerName", PhotonNetwork.NickName);
         }
 
@@ -181,6 +189,9 @@ namespace PV.Multiplayer
             Cursor.lockState = lockCursorValue ? CursorLockMode.Confined : CursorLockMode.None;
         }
 
+        /// <summary>
+        /// Maakt een nieuwe room als de roomnaam geldig is.
+        /// </summary>
         public void CreateRoom()
         {
             if (!string.IsNullOrEmpty(roomNameField.text))
@@ -197,48 +208,54 @@ namespace PV.Multiplayer
             }
         }
 
-        public void UpdateRoomList(List<RoomInfo> roomListData)
+        /// <summary>
+        /// Update de roomlijst-UI met de nieuwste roominformatie.
+        /// </summary>
+        public void UpdateRoomList(List<RoomInfo> roomList)
         {
-            for (int i = 0; i < roomListData.Count; i++)
+            for (int i = 0; i < roomList.Count; i++)
             {
                 if (_roomInfos.Count <= 0)
                 {
-                    if (roomListData[i].RemovedFromList) continue;
-                    AddRoom(roomListData[i]);
+                    if (roomList[i].RemovedFromList) continue;
+                    AddRoom(roomList[i]);
                 }
                 else
                 {
-                    if (roomListData[i].RemovedFromList)
+                    if (roomList[i].RemovedFromList)
                     {
-                        if (_roomInfos.ContainsKey(roomListData[i].Name))
+                        if (_roomInfos.ContainsKey(roomList[i].Name))
                         {
-                            _roomInfos.Remove(roomListData[i].Name);
-                            _roomItems.Remove(roomListData[i].Name, out RoomItem roomItem);
+                            _roomInfos.Remove(roomList[i].Name);
+                            _roomItems.Remove(roomList[i].Name, out RoomItem roomItem);
                             Destroy(roomItem.gameObject);
                         }
                     }
-                    else if (!_roomInfos.ContainsKey(roomListData[i].Name))
+                    else if (!_roomInfos.ContainsKey(roomList[i].Name))
                     {
-                        AddRoom(roomListData[i]);
+                        AddRoom(roomList[i]);
                     }
                     else
                     {
-                        _roomInfos[roomListData[i].Name] = roomListData[i];
-                        if (!roomListData[i].IsOpen || roomListData[i].PlayerCount >= roomListData[i].MaxPlayers)
+                        _roomInfos[roomList[i].Name] = roomList[i];
+                        if (!roomList[i].IsOpen || roomList[i].PlayerCount >= roomList[i].MaxPlayers)
                         {
-                            _roomItems[roomListData[i].Name].Disable();
+                            _roomItems[roomList[i].Name].Disable();
                         }
                         else
                         {
-                            _roomItems[roomListData[i].Name].Enable();
+                            _roomItems[roomList[i].Name].Enable();
                         }
-                        _roomItems[roomListData[i].Name].SetPlayerRatio($"{roomListData[i].PlayerCount} / {roomListData[i].MaxPlayers}");
+                        _roomItems[roomList[i].Name].SetPlayerRatio($"{roomList[i].PlayerCount} / {roomList[i].MaxPlayers}");
                     }
                 }
             }
             CheckRoomList();
         }
 
+        /// <summary>
+        /// Controleert of er rooms zijn en toont een passend bericht.
+        /// </summary>
         private void CheckRoomList()
         {
             bool hasRooms = _roomItems.Count > 0;
@@ -246,6 +263,9 @@ namespace PV.Multiplayer
             noRoomMessage.SetActive(!hasRooms);
         }
 
+        /// <summary>
+        /// Voegt een nieuwe room toe aan de roomlijst-UI.
+        /// </summary>
         private void AddRoom(RoomInfo room)
         {
             RoomItem roomItem = Instantiate(roomItemPrefab, roomItemContainer).GetComponent<RoomItem>();
@@ -258,6 +278,9 @@ namespace PV.Multiplayer
             _roomItems[room.Name] = roomItem;
         }
 
+        /// <summary>
+        /// Probeert een room te joinen als deze beschikbaar en niet vol is.
+        /// </summary>
         private void JoinRoom(string roomName)
         {
             if (_roomInfos.ContainsKey(roomName))
@@ -287,6 +310,9 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Toont een feedbackbericht tijdens een actie.
+        /// </summary>
         public void ShowFeedback(string message)
         {
             mainUI.SetActive(false);
@@ -297,14 +323,15 @@ namespace PV.Multiplayer
             feedbackMessage.gameObject.SetActive(true);
         }
 
-        // --- Photon Callback Methods (zonder override keyword) ---
-        public void OnRoomListUpdate(List<RoomInfo> roomListData)
+        // --- Photon Callback Overrides ---
+        public override void OnRoomListUpdate(List<RoomInfo> roomList)
         {
-            UpdateRoomList(roomListData);
+            UpdateRoomList(roomList);
         }
 
         public void OnPlayerEnteredRoom(Playert newPlayer)
         {
+            // Update de spelerslijst zodra een nieuwe speler de room binnenkomt.
             if (!_playerItems.ContainsKey(newPlayer.ActorNumber))
             {
                 CreatePlayerItem(newPlayer.ActorNumber);
@@ -314,6 +341,7 @@ namespace PV.Multiplayer
 
         public void OnPlayerLeftRoom(Player otherPlayer)
         {
+            // Update de spelerslijst zodra een speler de room verlaat.
             if (_playerItems.ContainsKey(otherPlayer.ActorNumber))
             {
                 RemovePlayerItem(otherPlayer.ActorNumber);
@@ -323,6 +351,7 @@ namespace PV.Multiplayer
 
         public void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
+            // Update de ready-status van de speler als deze verandert.
             if (changedProps.ContainsKey(READY_KEY))
             {
                 if (_playerItems.ContainsKey(targetPlayer.ActorNumber))
@@ -337,34 +366,106 @@ namespace PV.Multiplayer
             }
         }
 
-        // Extra methodes voor aanroepen vanuit andere scripts
-        public void OnPlayerEnter(int actorNumber)
+        public void OnGameTimeChanged()
         {
-            if (!_playerItems.ContainsKey(actorNumber))
+            gameTimeText.text = gameTimeSlider.value.ToString();
+        }
+
+        public void OnMaxPlayersChanged()
+        {
+            maxPlayersText.text = maxPlayersSlider.value.ToString();
+            NetworkManager.Instance.SetMaxPlayers((int)maxPlayersSlider.value);
+        }
+
+        /// <summary>
+        /// Callback voor de startknop; de host kan hiermee de game starten zodra alle spelers klaar zijn.
+        /// </summary>
+        public void StartGameButtonPressed()
+        {
+            if (PhotonNetwork.IsMasterClient && startGameButton.interactable)
             {
-                CreatePlayerItem(actorNumber);
+                PhotonNetwork.LoadLevel(1);
             }
+        }
+
+        public void ToggleReadyStatus()
+        {
+            if (_localID == -1 || Time.time - _lastToggleTime < _toggleDelay)
+            {
+                return;
+            }
+            _lastToggleTime = Time.time;
+
+            bool currentStatus = _playerProps.ContainsKey(READY_KEY) ? (bool)_playerProps[READY_KEY] : false;
+            SetLocalReadyStatus(!currentStatus);
             CheckAllPlayersReady();
         }
 
-        public void OnPlayerLeft(Player player)
+        /// <summary>
+        /// Wijzigt de lokale ready-status en werkt de UI bij.
+        /// </summary>
+        private void SetLocalReadyStatus(bool isReady)
         {
-            if (_playerItems.ContainsKey(player.ActorNumber))
-            {
-                RemovePlayerItem(player.ActorNumber);
-            }
-            CheckAllPlayersReady();
+            _playerProps[READY_KEY] = isReady;
+            PhotonNetwork.LocalPlayer.SetCustomProperties(_playerProps);
+            readyButton.color = isReady ? readyColor : notReadyColor;
+            _playerItems[_localID].SetStatus(isReady);
         }
 
-        public void OnPlayerPropsUpdate(int actorNumber, Hashtable changedProps)
+        /// <summary>
+        /// Creëert een nieuw UI-element voor een speler in de room.
+        /// </summary>
+        private void CreatePlayerItem(int actorNumber)
         {
-            Player targetPlayer = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber);
-            if (targetPlayer != null)
+            PlayerItem playerItem = Instantiate(playerItemPrefab, playerItemContainer).GetComponent<PlayerItem>();
+            Player player = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber);
+            playerItem.InitItem(player != null ? player.NickName : DEFAULT_NAME);
+            if (player.CustomProperties.ContainsKey(READY_KEY))
             {
-                OnPlayerPropertiesUpdate(targetPlayer, changedProps);
+                playerItem.SetStatus((bool)player.CustomProperties[READY_KEY]);
+            }
+            _playerItems[actorNumber] = playerItem;
+        }
+
+        /// <summary>
+        /// Verwijdert het UI-element van een speler die de room verlaat.
+        /// </summary>
+        private void RemovePlayerItem(int actorNumber)
+        {
+            if (_playerItems.Remove(actorNumber, out PlayerItem item))
+            {
+                Destroy(item.gameObject);
             }
         }
 
+        /// <summary>
+        /// Behandelt fouten door de juiste UI te tonen.
+        /// </summary>
+        public void OnError()
+        {
+            if (feedbackMessage != null)
+            {
+                feedbackMessage.gameObject.SetActive(false);
+                profileUI.SetActive(false);
+                roomUI.SetActive(false);
+                deathmatchUI.SetActive(false);
+                mainUI.SetActive(true);
+            }
+        }
+
+        /// <summary>
+        /// Sluit de applicatie af.
+        /// </summary>
+        public void Quit()
+        {
+            Application.Quit();
+        }
+
+        // --- Extra helper-methoden uit de eerste versie ---
+
+        /// <summary>
+        /// Verwerkt netwerkgebeurtenissen en roept de juiste callback op.
+        /// </summary>
         public void OnNetworkEvent(NetworkEvent networkEvent)
         {
             switch (networkEvent)
@@ -383,6 +484,9 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Callback wanneer de speler de lobby betreedt.
+        /// </summary>
         public void OnJoinedLobby()
         {
             feedbackMessage.gameObject.SetActive(false);
@@ -405,15 +509,16 @@ namespace PV.Multiplayer
             NetworkManager.Instance.SetMaxPlayers(4);
         }
 
+        /// <summary>
+        /// Callback wanneer de speler een room betreedt.
+        /// </summary>
         public void OnJoinedRoom()
         {
             feedbackMessage.gameObject.SetActive(false);
             foreach (Player player in PhotonNetwork.PlayerList)
             {
                 if (!_playerItems.ContainsKey(player.ActorNumber))
-                {
                     CreatePlayerItem(player.ActorNumber);
-                }
             }
             _localID = PhotonNetwork.LocalPlayer.ActorNumber;
             _playerProps = new Hashtable() { { READY_KEY, false } };
@@ -431,6 +536,9 @@ namespace PV.Multiplayer
             roomUI.SetActive(true);
         }
 
+        /// <summary>
+        /// Callback wanneer de speler een room aanmaakt.
+        /// </summary>
         public void OnCreatedRoom()
         {
             foreach (var room in _roomItems.Values)
@@ -453,6 +561,46 @@ namespace PV.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Extra helper-method voor het toevoegen van een speler via actorNumber.
+        /// </summary>
+        public void OnPlayerEnter(int actorNumber)
+        {
+            if (!_playerItems.ContainsKey(actorNumber))
+            {
+                CreatePlayerItem(actorNumber);
+            }
+            CheckAllPlayersReady();
+        }
+
+        /// <summary>
+        /// Extra helper-method voor het verwijderen van een speler.
+        /// </summary>
+        public void OnPlayerLeft(Player player)
+        {
+            if (_playerItems.ContainsKey(player.ActorNumber))
+            {
+                RemovePlayerItem(player.ActorNumber);
+            }
+            CheckAllPlayersReady();
+        }
+
+        /// <summary>
+        /// Extra helper-method voor het updaten van speler properties.
+        /// </summary>
+        public void OnPlayerPropsUpdate(int actorNumber, Hashtable changedProps)
+        {
+            Player targetPlayer = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber);
+            if (targetPlayer != null)
+            {
+                OnPlayerPropertiesUpdate(targetPlayer, changedProps);
+            }
+        }
+
+        /// <summary>
+        /// Controleert of alle spelers in de room klaar zijn.
+        /// Als dit het geval is en de lokale speler de host is, wordt de startknop geactiveerd.
+        /// </summary>
         private void CheckAllPlayersReady()
         {
             bool allReady = true;
@@ -473,98 +621,9 @@ namespace PV.Multiplayer
                 }
             }
             if (_playerItems.Count < 2 || NetworkManager.Instance.isLeaving)
-            {
                 allReady = false;
-            }
             if (PhotonNetwork.IsMasterClient)
-            {
                 startGameButton.interactable = allReady;
-            }
-        }
-
-        public void OnGameTimeChanged()
-        {
-            gameTimeText.text = gameTimeSlider.value.ToString();
-        }
-
-        public void OnMaxPlayersChanged()
-        {
-            maxPlayersText.text = maxPlayersSlider.value.ToString();
-            NetworkManager.Instance.SetMaxPlayers((int)maxPlayersSlider.value);
-        }
-
-        // --- GAME SPAWN & START ---
-        // In plaats van zelf de scene te laden en te spawnen, roepen we de GameManager aan.
-
-
-        /// <summary>
-        /// Callback voor de startknop; de host kan hiermee de game starten zodra alle spelers klaar zijn.
-        /// </summary>
-        public void StartGameButtonPressed()
-        {
-            Debug.Log("StartGameButtonPressed() aangeroepen");
-            if (PhotonNetwork.IsMasterClient && startGameButton.interactable)
-            {
-                Debug.Log("StartGame() wordt nu aangeroepen");
-                PhotonNetwork.LoadLevel(1);
-            }
-        }
-
-        public void ToggleReadyStatus()
-        {
-            if (_localID == -1 || Time.time - _lastToggleTime < _toggleDelay)
-            {
-                return;
-            }
-            _lastToggleTime = Time.time;
-            bool currentStatus = _playerProps.ContainsKey(READY_KEY) ? (bool)_playerProps[READY_KEY] : false;
-            SetLocalReadyStatus(!currentStatus);
-            CheckAllPlayersReady();
-        }
-
-        private void SetLocalReadyStatus(bool isReady)
-        {
-            _playerProps[READY_KEY] = isReady;
-            PhotonNetwork.LocalPlayer.SetCustomProperties(_playerProps);
-            readyButton.color = isReady ? readyColor : notReadyColor;
-            _playerItems[_localID].SetStatus(isReady);
-        }
-
-        private void CreatePlayerItem(int actorNumber)
-        {
-            PlayerItem playerItem = Instantiate(playerItemPrefab, playerItemContainer).GetComponent<PlayerItem>();
-            Player player = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber);
-            playerItem.InitItem(player != null ? player.NickName : DEFAULT_NAME);
-            if (player.CustomProperties.ContainsKey(READY_KEY))
-            {
-                playerItem.SetStatus((bool)player.CustomProperties[READY_KEY]);
-            }
-            _playerItems[actorNumber] = playerItem;
-        }
-
-        private void RemovePlayerItem(int actorNumber)
-        {
-            if (_playerItems.Remove(actorNumber, out PlayerItem item))
-            {
-                Destroy(item.gameObject);
-            }
-        }
-
-        public void OnError()
-        {
-            if (feedbackMessage != null)
-            {
-                feedbackMessage.gameObject.SetActive(false);
-                profileUI.SetActive(false);
-                roomUI.SetActive(false);
-                deathmatchUI.SetActive(false);
-                mainUI.SetActive(true);
-            }
-        }
-
-        public void Quit()
-        {
-            Application.Quit();
         }
     }
 }

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 06f508cfd8dd52b43be394dff8c56a75
+timeCreated: 1543079126
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 133633
+  packageName: Crashed Boeing Globemaster III
+  packageVersion: 1.0
+  assetPath: Assets/Boeng C-17/Materials/m_Boeng.mat
+  uploadId: 280253
