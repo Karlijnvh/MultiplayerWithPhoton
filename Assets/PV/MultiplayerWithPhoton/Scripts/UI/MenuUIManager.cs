@@ -56,10 +56,10 @@ namespace PV.Multiplayer
         [Tooltip("Knop voor de host om de game te starten zodra alle spelers klaar zijn.")]
         public Button startGameButton;
 
-        // Dictionaries voor roominformatie, UI-items en speler-items.
-        private Dictionary<string, RoomInfo> _roomInfos = new Dictionary<string, RoomInfo>();
-        private Dictionary<string, RoomItem> _roomItems = new Dictionary<string, RoomItem>();
-        private Dictionary<int, PlayerItem> _playerItems = new Dictionary<int, PlayerItem>();
+        // Dictionaries om roominformatie, UI-items en speler-items bij te houden.
+        private Dictionary<string, RoomInfo> _roomInfos = new();
+        private Dictionary<string, RoomItem> _roomItems = new();
+        private Dictionary<int, PlayerItem> _playerItems = new();
 
         private int _localID = -1;
         private readonly float _toggleDelay = 1f; // Tijd tussen toggles.
@@ -329,7 +329,7 @@ namespace PV.Multiplayer
             UpdateRoomList(roomList);
         }
 
-        public void OnPlayerEnteredRoom(Player newPlayer)
+        public override void OnPlayerEnteredRoom(Player newPlayer)
         {
             // Update de spelerslijst zodra een nieuwe speler de room binnenkomt.
             if (!_playerItems.ContainsKey(newPlayer.ActorNumber))
@@ -339,7 +339,7 @@ namespace PV.Multiplayer
             CheckAllPlayersReady();
         }
 
-        public void OnPlayerLeftRoom(Player otherPlayer)
+        public override void OnPlayerLeftRoom(Player otherPlayer)
         {
             // Update de spelerslijst zodra een speler de room verlaat.
             if (_playerItems.ContainsKey(otherPlayer.ActorNumber))
@@ -349,7 +349,7 @@ namespace PV.Multiplayer
             CheckAllPlayersReady();
         }
 
-        public void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             // Update de ready-status van de speler als deze verandert.
             if (changedProps.ContainsKey(READY_KEY))
