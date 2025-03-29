@@ -57,10 +57,10 @@ namespace PV.Multiplayer
         [Tooltip("Knop voor de host om de game te starten zodra alle spelers klaar zijn.")]
         public Button startGameButton;
 
-        // Dictionaries om roominformatie, UI-items en speler-items bij te houden.
-        private Dictionary<string, RoomInfo> _roomInfos = new();
-        private Dictionary<string, RoomItem> _roomItems = new();
-        private Dictionary<int, PlayerItem> _playerItems = new();
+        // Dictionaries voor roominformatie, UI-items en speler-items.
+        private Dictionary<string, RoomInfo> _roomInfos = new Dictionary<string, RoomInfo>();
+        private Dictionary<string, RoomItem> _roomItems = new Dictionary<string, RoomItem>();
+        private Dictionary<int, PlayerItem> _playerItems = new Dictionary<int, PlayerItem>();
 
         private int _localID = -1;
         private readonly float _toggleDelay = 1f; // Tijd tussen toggles.
@@ -134,6 +134,7 @@ namespace PV.Multiplayer
             PlayerPrefs.SetString("PlayerName", PhotonNetwork.NickName);
         }
 
+        // --- Menu navigatie methoden ---
         public void OpenProfile()
         {
             mainUI.SetActive(false);
@@ -296,13 +297,13 @@ namespace PV.Multiplayer
             feedbackMessage.gameObject.SetActive(true);
         }
 
-        // --- Photon Callback Overrides ---
-        public override void OnRoomListUpdate(List<RoomInfo> roomListData)
+        // --- Photon Callback Methods (zonder override keyword) ---
+        public void OnRoomListUpdate(List<RoomInfo> roomListData)
         {
             UpdateRoomList(roomListData);
         }
 
-        public override void OnPlayerEnteredRoom(Player newPlayer)
+        public void OnPlayerEnteredRoom(Playert newPlayer)
         {
             if (!_playerItems.ContainsKey(newPlayer.ActorNumber))
             {
@@ -311,7 +312,7 @@ namespace PV.Multiplayer
             CheckAllPlayersReady();
         }
 
-        public override void OnPlayerLeftRoom(Player otherPlayer)
+        public void OnPlayerLeftRoom(Player otherPlayer)
         {
             if (_playerItems.ContainsKey(otherPlayer.ActorNumber))
             {
@@ -320,7 +321,7 @@ namespace PV.Multiplayer
             CheckAllPlayersReady();
         }
 
-        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        public void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             if (changedProps.ContainsKey(READY_KEY))
             {
@@ -336,6 +337,7 @@ namespace PV.Multiplayer
             }
         }
 
+        // Extra methodes voor aanroepen vanuit andere scripts
         public void OnPlayerEnter(int actorNumber)
         {
             if (!_playerItems.ContainsKey(actorNumber))
@@ -490,6 +492,10 @@ namespace PV.Multiplayer
             maxPlayersText.text = maxPlayersSlider.value.ToString();
             NetworkManager.Instance.SetMaxPlayers((int)maxPlayersSlider.value);
         }
+
+        // --- GAME SPAWN & START ---
+        // In plaats van zelf de scene te laden en te spawnen, roepen we de GameManager aan.
+
 
         /// <summary>
         /// Callback voor de startknop; de host kan hiermee de game starten zodra alle spelers klaar zijn.
