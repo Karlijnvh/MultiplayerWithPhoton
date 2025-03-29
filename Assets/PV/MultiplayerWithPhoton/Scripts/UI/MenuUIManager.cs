@@ -329,7 +329,7 @@ namespace PV.Multiplayer
             UpdateRoomList(roomList);
         }
 
-        public void OnPlayerEnteredRoom(Playert newPlayer)
+        public void OnPlayerEnteredRoom(Player newPlayer)
         {
             // Update de spelerslijst zodra een nieuwe speler de room binnenkomt.
             if (!_playerItems.ContainsKey(newPlayer.ActorNumber))
